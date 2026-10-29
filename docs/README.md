@@ -7,6 +7,7 @@
 - [02 — Исследование](02-research/references.md), [сравнение кандидатов](02-research/candidates.md), [заводская Guition](02-research/guition-factory-demo.md), [открытые вопросы](02-research/open-questions.md).
 - **[RH-01 — утверждённая компоновка главной жилой панели](03-design/room-home-reference-RH-01.md)** — точное описание UI 480×480, мотивы выбора/отказа, список открытых вариантов света и шрифта.
 - **[LA-01 — утверждённая иконка света](03-design/light-action-reference-LA-01.md)** — тонкий полукруглый подвесной плафон, полупрозрачный свет, градиентно затухающий провод, состояния on/off.
+- **[Структура референсов и ассетов](03-design/asset-library.md)** — отдельное хранение проверенных UI-макетов, hi-res фонов, исходников виджетов и сгенерированных ресурсов 480/720.
 - [03 — Дизайн](03-design/design-system.md), [экраны и навигация](03-design/screens.md), [480/720 pipeline](03-design/resolution-strategy.md), [визуальное ревью](03-design/visual-review.md).
 - [04 — Архитектура](04-architecture/architecture.md), [контракт HA](04-architecture/ha-contract.md), [профили железа](04-architecture/hardware.md), [ADR-0001](04-architecture/adr/0001-native-lvgl.md), [ADR-0002](04-architecture/adr/0002-source-resolution-independence.md).
 - [05 — План](05-roadmap/roadmap.md), [backlog](05-roadmap/backlog.md).
