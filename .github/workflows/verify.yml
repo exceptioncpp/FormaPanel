@@ -1,0 +1,24 @@
+name: Verify asset pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  design-assets:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Dependencies
+        run: python -m pip install -r tools/requirements.txt
+      - name: Render vectors to display profiles
+        run: python tools/render_assets.py --all
+      - name: Validate project files
+        run: python tools/validate.py
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
