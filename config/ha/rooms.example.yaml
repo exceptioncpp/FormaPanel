@@ -1,0 +1,30 @@
+# LOGICAL mapping only — not a drop-in ESPHome configuration.
+# Placeholder names; replace after Home Assistant entity inventory.
+profiles:
+  living:
+    room_temperature: sensor.REPLACE_living_temperature
+    room_humidity: sensor.REPLACE_living_humidity
+    outdoor_weather: weather.REPLACE_home
+    light_primary: light.REPLACE_living
+    climate_room: climate.REPLACE_living
+  bedroom:
+    room_temperature: sensor.REPLACE_bedroom_temperature
+    room_humidity: sensor.REPLACE_bedroom_humidity
+    outdoor_weather: weather.REPLACE_home
+    light_primary: light.REPLACE_bedroom
+    climate_room: climate.REPLACE_bedroom
+  office:
+    room_temperature: sensor.REPLACE_office_temperature
+    room_humidity: sensor.REPLACE_office_humidity
+    outdoor_weather: weather.REPLACE_home
+    light_primary: light.REPLACE_office
+    climate_room: climate.REPLACE_office
+  bathroom:
+    room_temperature: sensor.REPLACE_bathroom_temperature
+    room_humidity: sensor.REPLACE_bathroom_humidity
+    floor: climate.REPLACE_bathroom_floor
+    ventilation: fan.REPLACE_bathroom
+    towel_timer: timer.REPLACE_towel
+  hallway:
+    outdoor_weather: weather.REPLACE_home
+    master_lighting: script.REPLACE_master_light

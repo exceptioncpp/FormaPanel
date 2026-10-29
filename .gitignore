@@ -1,0 +1,32 @@
+# Private configuration
+**/secrets.yaml
+**/*.secrets.yaml
+.env
+.env.*
+!.env.example
+config/private/
+local/
+# ESPHome / PlatformIO / binaries
+.esphome/
+.pio/
+**/.pio/
+**/build/
+*.bin
+*.elf
+*.uf2
+*.map
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+# Source archives from manufacturers / dependencies
+*.zip
+*.7z
+*.rar
+third_party/vendor/
+# Local reports
+reports/local/
+# Generated device image previews are intentionally tracked after review
+.DS_Store
+Thumbs.db
