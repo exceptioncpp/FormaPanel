@@ -24,7 +24,7 @@ FormaPanel — проект эстетичных сенсорных панеле
 | `assets/source/` | Оригинальные векторные и hi-res исходники |
 | `assets/generated/` | Подготовленная графика под 480×480 и 720×720 |
 | `firmware/esphome/` | Целевая ESPHome + LVGL реализация |
-| `firmware/native/` | Опциональный ESP-IDF/Arduino эксперимент, не основная ветка |
+| `firmware/native/` | Исследуемый native ESP-IDF + LVGL конкурент ESPHome (пока без рабочей прошивки) |
 | `config/ha/` | Пример контракта/привязок HA, без secrets |
 | `hardware/` | Аппаратные профили и результаты измерений |
 | `tools/` | Рендер, инвентаризация архивов, проверки |
@@ -41,6 +41,16 @@ python -m unittest discover -s tests -v
 ```
 
 Результат: PNG preview для 480 и 720. Демонстрационный SVG — **оригинальный эскиз FormaPanel**, не заводская тема Guition. Генератор не прошивает устройство.
+
+## Исследование прошивки и UI preview (октябрь 2026)
+
+- [Базы прошивки: ESPHome + LVGL 9, native ESP-IDF, готовые проекты, P4](docs/02-research/firmware-platforms-2026-10.md)
+- [Визуальные инструменты: ESPBoards, ESPHomeDesigner, ESPHome-LVGL-Simulator, LVGL Pro, EEZ, SquareLine, SDL](docs/02-research/lvgl-visual-tools-2026-10.md)
+- [Windows 11 workflow, компиляция и схема GitHub Actions](docs/02-research/build-preview-workflows.md)
+- [Реестр источников и границы подтверждения](docs/02-research/research-source-register-2026-10.md)
+- [План RH-01/LA-01 сравнения на реальном Guition](docs/06-validation/rh01-platform-ab-test.md), [ADR-0003 о критериях выбора](docs/04-architecture/adr/0003-platform-evaluation.md)
+
+**Выбор не окончательный:** ESPHome — первичный S3 baseline, native IDF — обязательный для оценки candidate. Никаких firmware benchmark или on-device результатов пока нет. Новые материалы — документы, без внедрения новой прошивки или CI job.
 
 ## Проектные решения
 
