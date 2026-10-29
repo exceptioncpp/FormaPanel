@@ -5,6 +5,10 @@
 - [00 — Vision](00-vision/product-vision.md) — позиционирование, границы, принципы.
 - [01 — Требования](01-requirements/requirements.md), [пять комнат](01-requirements/rooms.md), [критерии приёмки](01-requirements/acceptance.md).
 - [02 — Исследование](02-research/references.md), [сравнение кандидатов](02-research/candidates.md), [заводская Guition](02-research/guition-factory-demo.md), [открытые вопросы](02-research/open-questions.md).
+- **[Исследование баз прошивки, октябрь 2026](02-research/firmware-platforms-2026-10.md)** — ESPHome/LVGL 9, ESP-IDF/LVGL, Arduino, готовые проекты, ресурсные риски и взвешенный выбор.
+- **[Средства визуального редактирования и preview](02-research/lvgl-visual-tools-2026-10.md)** — ESPBoards, ESPHomeDesigner, ESPHome-LVGL-Simulator, LVGL Pro, EEZ, SquareLine и настоящий LVGL SDL.
+- [Windows 11 build/preview и план CI](02-research/build-preview-workflows.md) · [реестр источников](02-research/research-source-register-2026-10.md).
+- [ADR-0003 — критерии выбора](04-architecture/adr/0003-platform-evaluation.md) · [RH-01/LA-01 A/B протокол](06-validation/rh01-platform-ab-test.md).
 - **[RH-01 — утверждённая компоновка главной жилой панели](03-design/room-home-reference-RH-01.md)** — точное описание UI 480×480, мотивы выбора/отказа, список открытых вариантов света и шрифта.
 - **[LA-01 — утверждённая иконка света](03-design/light-action-reference-LA-01.md)** — тонкий полукруглый подвесной плафон, полупрозрачный свет, градиентно затухающий провод, состояния on/off.
 - **[Структура референсов и ассетов](03-design/asset-library.md)** — отдельное хранение проверенных UI-макетов, hi-res фонов, исходников виджетов и сгенерированных ресурсов 480/720.
