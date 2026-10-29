@@ -1,6 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1440" height="1440" viewBox="0 0 1440 1440">
   <defs><linearGradient id="cta"><stop offset="0" stop-color="#EAC58B"/><stop offset="1" stop-color="#D5A563"/></linearGradient></defs>
-  <image xlink:href="../../assets/source/aurora-background.svg" x="0" y="0" width="1440" height="1440"/>
   <g font-family="DejaVu Sans, sans-serif">
     <text x="120" y="180" font-size="35" fill="#A8B4C1" letter-spacing="2">ГОСТИНАЯ</text>
     <text x="114" y="690" font-size="230" font-weight="300" fill="#F6F5F1">20:48</text>

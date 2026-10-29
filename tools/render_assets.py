@@ -23,7 +23,15 @@ def render(source: Path, output: Path, width: int, height: int, supersample: int
     if not source.is_file():
         raise FileNotFoundError(source)
     png_data = cairosvg.svg2png(url=str(source), output_width=width * supersample, output_height=height * supersample)
-    with Image.open(BytesIO(png_data)) as im:
+    with Image.open(BytesIO(png_data)) as original:
+        im = original.convert('RGBA')
+        # Keep decorative background and mock content as separate master sources.
+        # The device UI will draw labels/buttons dynamically in LVGL, not bake them into background.
+        if source.name == 'room-home.svg':
+            bg = cairosvg.svg2png(url=str(ROOT / 'assets/source/aurora-background.svg'),
+                                   output_width=width * supersample, output_height=height * supersample)
+            with Image.open(BytesIO(bg)) as background:
+                im = Image.alpha_composite(background.convert('RGBA'), im)
         im = im.convert('RGB').resize((width, height), Image.Resampling.LANCZOS)
         output.parent.mkdir(parents=True, exist_ok=True)
         im.save(output, format='PNG', optimize=True)
