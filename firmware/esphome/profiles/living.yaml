@@ -1,0 +1,9 @@
+substitutions:
+  room_label: Гостиная
+  room_id: living
+  # Verified HA area; metadata only, never used for broad area service targets.
+  room_area_id: gostinaia
+  formapanel_font_bold: source/fonts/comfortaa/Comfortaa-Bold.ttf
+  formapanel_font_medium: source/fonts/comfortaa/Comfortaa-Medium.ttf
+packages:
+  shared: !include 'residential-ui.yaml'

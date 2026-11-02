@@ -1,0 +1,13 @@
+# One shared home layout/resources plus one shared secondary page.
+# Room profiles override demo values only; no production entities are assumed.
+substitutions:
+  demo_time: "08:00"
+  demo_outdoor_temperature: "+2°"
+  demo_wind: "6"
+  demo_room_temperature: "22°"
+  demo_room_humidity: "45%"
+  demo_room_co2: "680 ppm"
+
+packages:
+  home: !include ../packages/rh01-ui.yaml
+  info: !include ../packages/info-page.yaml

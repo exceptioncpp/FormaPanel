@@ -1,197 +1,125 @@
-# FormaPanel — build, preview и CI (Windows 11 / GitHub Actions)
+# Сборка, предпросмотр и CI: состояние и направления
 
-**Статус:** исследование и проектируемый workflow, 29.10.2026. Команды ниже **не запускались**, а реальные firmware проекты ещё не созданы. Сейчас `.github/workflows/verify.yml` проверяет графику/Python, **не** ESPHome/ESP-IDF. См.: [сравнение платформ](firmware-platforms-2026-10.md), [визуальные редакторы](lvgl-visual-tools-2026-10.md), [проверка RH-01](../06-validation/rh01-platform-ab-test.md).
+Обновлено **01.11.2026**. Этот документ заменяет первоначальный proposal
+29.10.2026 с несуществовавшими тогда entry и Windows SDK. Текущий процесс
+описан в [операционном руководстве](../06-validation/build-and-preview-runbook.md),
+а файлы и правила включения — в [компоновке исходников](../04-architecture/source-composition.md).
 
-## 1. Как не дублировать UI
+## Действующий baseline
+
+- Firmware: ESPHome **2026.10.1**, LVGL **9.5.0**, ESP-IDF **5.5.6**.
+- Сервер сборки: Home Assistant, pinned официальный ESPHome build image.
+- Браузерные инструменты: Studio Code Server и FormaPanel Workshop **0.1.1**.
+- Один Git checkout, доступный редактору и read-only сборщику.
+- Результаты: native LVGL PNG, Factory/OTA BIN и журналы в private data Workshop.
+- На Windows **не устанавливаются ESP-IDF, CMake, Ninja, PlatformIO или SDL SDK**.
+
+Файлы ESPHome уже существуют: базовый `formapanel-rh01.yaml`, две цели
+`targets/living.yaml` и `targets/bedroom.yaml`, общие packages, room profiles
+и host previews. Их пары перечисляет `config/workbench-targets.json`.
+Не использовать прежние примерные `panels/living-rh01.yaml` и версию
+2026.10.0 как действующие инструкции.
+
+## Один UI для device и preview
 
 ```text
-RH-01, LA-01 approved design + assets/source/*
-                   │
-          tools/render_assets.py
-                   │
-        assets/generated/{480x480,720x720}
-                   │
-       ┌───────────┴─────────────┐
-       ▼                         ▼
-ESPHome LVGL YAML            Native LVGL C / generated C
-       │                         │
-ESPBoards/JS preview         LVGL SDL PC preview
-       │                         │
-ESPHome S3 binary            ESP-IDF S3 binary
-       └────────────┬────────────┘
-                    ▼
-             Guition hardware A/B
+общие packages + room profile + assets
+                │
+     ┌──────────┴───────────┐
+     ↓                      ↓
+ESP32 target             host preview
+hardware/connection      snapshot backend
+     ↓                      ↓
+Factory / OTA BIN        настоящий LVGL PNG
 ```
 
-**Общее**: утверждённая сетка, background files, LA-01 sprite states, glyph set, mock sensor values, тестовые сценарии. **Раздельное**: YAML widgets у ESPHome и C/C++ objects у native — это именно два *коротких сравнительных* эксперимента, а не два поддерживаемых production UI.
+ESPHome раскрывает настоящие `packages`/`!include`; Workshop не поддерживает
+вторую вручную редактируемую копию UI. Гостиная и спальня подключают один
+профиль к обеим своим целям. Базовый RH-01 — фиксированный эталон: его host
+entry отдельно задаёт demo substitutions; правка значения только в device
+entry не меняет host demo. Общий `rh01-ui.yaml` используется в обоих случаях.
 
-- **ESPHome single source of truth:** отслеживаемый Git `lvgl:` YAML; ESPBoards только экспорт/импорт, браузерный simulator только предварительный render. Пользовательские `!lambda`, ESPHome `packages` и external C++ могут быть не представлены в GUI.
-- **Native single source of truth:** независимо от GUI editor — C UI core / редактируемый XML или EEZ project + generated source в Git. Один `ui_core` компилируется **и** в host SDL, **и** в ESP-IDF. Весь ESP32-specific код вынести в `board_guition`; сети/HA — в `ha_bridge`; данные на PC — в `mock_state`.
-- **Запрещённая предпосылка:** готовый C-код SquareLine/EEZ/LVGL Pro не становится ESPHome YAML автоматически. Нет универсального совместимого двустороннего конвертера.
+Для visual authoring допускается отдельный generated UI-фрагмент; ручные
+bindings и HA scripts хранятся снаружи. Полный процесс и ограничения редакторов:
+[методология UI](effective-ui-development-2026-11.md).
 
-## 2. Подготовка Windows 11
+## Практическая итерация
 
-Установить Git, Python 3.12, VS Code, CMake/Ninja и, при native ветке, официальный Espressif Installation Manager + SDL2 через vcpkg. Для visual authoring установить или открыть один из редакторов. Убедиться, что используемая исходная ветка FormaPanel соответствует PR/`main`.
+1. Сохранить YAML/PNG/TTF в общем checkout из Studio Code Server.
+2. Выбрать профиль в Workshop, выполнить Validate либо native preview.
+3. Проверить необходимые страницы и состояния. Новые страницы надо явно
+   добавить в capture-сценарий: текущий backend автоматически их не обходит.
+4. После принятия визуального результата собрать firmware BIN.
+5. Проверить и установить на выбранную панель отдельным USB/OTA действием.
+   Успешный host render не подтверждает GPIO/timings/touch/PSRAM.
+
+В 0.1.1 wrappers и ESPHome metadata имеют постоянные пути, а snapshots
+уникальны для job. Проверенный простой layout edit занимает 7.88 с серверного
+задания; это не гарантия для других assets/конфигураций. [Замеры](../06-validation/ha-workshop-incremental-2026-11-01.md).
+Автозапуск после Save и интерактивный SDL/noVNC не внедрены.
+
+## Windows: только лёгкие проверки и дополнительный preview
+
+Git и браузер достаточны для основного процесса в HA. Для локальной работы
+с assets достаточно Python и библиотек `tools/requirements.txt`:
 
 ```powershell
-cd D:\Work\Projects\Home\panels\FormaPanel
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
 python -m pip install -r tools/requirements.txt
 python tools/render_assets.py --all
+python tools/render_rh01.py
 python tools/validate.py
 python -m unittest discover -s tests -v
 ```
 
-Первые команды работают с существующим asset pipeline. Текущие зависимости Python заданы диапазонами: после выбора baseline создать lockfile с версиями/хешами и использовать его в локальной среде и Actions.
+Отдельный `python tools/preview_rh01.py` открывает RH-01 через адаптированный
+JS simulator на loopback 8080. Это приблизительный одностраничный preview,
+не универсальное раскрытие packages и не runtime HA. Он не заменяет native
+кадры и не является обязательным этапом.
 
-## 3. ESPHome lane — подготовка и build
+## Что выполняет GitHub Actions
 
-Предложение структуры:
+Действующий [verify.yml](../../.github/workflows/verify.yml) описывает один job:
 
-```text
-firmware/esphome/
-  boards/guition-s3-480.yaml
-  packages/system/{display,touch,backlight,network,api,ota}.yaml
-  packages/ui/{fonts,assets,theme,rh01}.yaml
-  panels/{living,bedroom,office,bathroom,hallway}.yaml
-  secrets.yaml.example
-```
+- Python 3.12 на Ubuntu и зависимости asset pipeline;
+- render базовых SVG и RH-01 ресурсов;
+- `tools/validate.py`;
+- `unittest discover`.
 
-Эти YAML **пока не существуют**. У дисплея есть [официальный ESPHome preset](https://esphome.io/components/display/mipi_rgb/) `GUITION-4848S040`, но прежде всего проверить маркировку/ревизию платы, backlight, PSRAM, I²C GT911 и RGB timings. Не копировать guessed pins в firmware.
+В нём **нет** ESPHome config/compile, native render, firmware artifacts или
+OTA. Наличие workflow не означает, что текущие незакоммиченные изменения
+уже отправлены на GitHub или remote checks запускались на этом working tree.
 
-На дату исследования **ESPHome 2026.10.0** опубликован в [releases](https://github.com/esphome/esphome/releases). Упоминание `2026.10.1` в исходном Deep Research черновике было неподтверждённым — здесь исправлено.
+Будущий firmware CI должен выбирать реальные targets из manifest,
+использовать согласованный pinned toolchain и тестовые provisioning values,
+сохранять manifest и результаты отдельно от production credentials.
+Добавлять такой job только после его фактического green run; не выдавать
+шаблон CI за установленную сборочную среду.
 
-```powershell
-python -m pip install "esphome==2026.10.0"
-# Эти три команды — только ПОСЛЕ добавления living-rh01.yaml:
-python -m esphome config firmware/esphome/panels/living-rh01.yaml
-python -m esphome compile firmware/esphome/panels/living-rh01.yaml
-python -m esphome analyze-memory firmware/esphome/panels/living-rh01.yaml
-```
+## Native ESP-IDF и интерактивный host — разные направления
 
-Первую прошивку `run --device COMx` выполнять **только после** осмотра платы, сохранения заводского firmware/flash dump при возможности и serial smoke-test. Для mock CI не применять настоящие Wi-Fi/API/OTA secrets. Подменять `!secret` тестовыми значениями; не загружать их в публичные browser editors.
+`firmware/native/` остаётся исследовательским кандидатом без рабочей прошивки.
+LVGL Pro/EEZ/SquareLine с C/XML требуют отдельного pipeline либо проверенного
+моста; проект не поддерживает автоматически вторую production UI-реализацию.
 
-### Desktop preview из *того же* YAML
+Для интерактивного просмотра **существующего ESPHome YAML** переход на native C
+не нужен: официальный ESPHome host + SDL — возможное расширение. Для браузера
+предлагаются Linux graphical session и VNC/noVNC. Такие зависимости размещаются
+на HA/отдельном сервере или в Docker, не на Windows. Это пока предложение,
+а не работающая часть Workshop.
 
-1. В [ESPBoards Designer](https://lvgl.espboards.dev/) импортировать отдельный RH-01 LVGL fragment, редактировать позиции, background, widgets, export YAML. Проверить `git diff`: неизвестные директивы могут потеряться.
-2. В [ESPHome-LVGL-Simulator](https://github.com/MaxCRRR/ESPHome-LVGL-Simulator) вставить итоговый YAML и быстро проверить геометрию, pages, навигацию и цвета. Это browser interpretation, не native LVGL.
-3. Запустить `esphome config` / `esphome compile`. Проверить реальную точность и прозрачность **на Guition**.
+## Состояние проверок
 
-Локальный simulator:
+| Проверка | Факт |
+|---|---|
+| Assets/alpha и server regression tests | 11 локальных тестов проходят; workflow настроен на их запуск |
+| ESPHome config и ESP32 compile | Проверены на HA, отчёты в `docs/06-validation/` |
+| Native ESPHome LVGL snapshot | Проверен на HA; не требует SDL |
+| ESP-IDF native C/UI branch | Не реализована |
+| Автоматический firmware/native CI | Не реализован |
+| Реальный Guition LCD/touch/HA/OTA и soak | Ожидают аппаратной приёмки |
+| Пять различных комнатных прошивок | Есть базовый RH-01 и два demo профиля; остальные ещё не созданы |
+| P4 720 | Плата не выбрана; только assets/research |
 
-```powershell
-git clone https://github.com/MaxCRRR/ESPHome-LVGL-Simulator.git
-cd ESPHome-LVGL-Simulator
-py -3 -m http.server 8080
-# http://localhost:8080/index.html
-```
-
-Сначала закрепить выбранный Git commit симулятора. Его дополнительный AI analyzer необязателен; внешние API ключи не нужны. HA states и `!lambda` могут заменяться placeholders/random values. Нельзя использовать browser screenshot как pixel-perfect эталон.
-
-### CI sketch после создания firmware
-
-```yaml
-name: Firmware experiment
-on:
-  push:
-    branches: [main]
-  pull_request:
-jobs:
-  esphome-rh01:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install "esphome==2026.10.0"
-      - run: esphome config firmware/esphome/panels/living-rh01.yaml
-      - run: esphome compile firmware/esphome/panels/living-rh01.yaml
-      - uses: actions/upload-artifact@v4
-        with:
-          name: esphome-rh01
-          path: firmware/esphome/.esphome/**/*.bin
-          if-no-files-found: error
-```
-
-**Не добавлять job сейчас:** путь generated firmware, наличие конфигов и разрешение dependencies не проверены. После первого green run закрепить версии Actions по SHA и собирать 5 комнат матрицей, когда существуют все room profiles. Опционально собирать elf/map и report памяти (реальное CLI поведение проверять с `esphome --help`).
-
-## 4. Native ESP-IDF lane и реальный LVGL SDL preview
-
-```text
-firmware/native/
-  CMakeLists.txt
-  sdkconfig.defaults
-  dependencies.lock
-  components/
-    board_guition/      # RGB ST7701, GT911, backlight, PSRAM
-    ui_core/            # pure LVGL C: RH-01, LA-01, animations, assets
-    ha_bridge/          # MQTT or HA bridge: state/commands/ack/OTA
-  main/
-tools/preview/lvgl-pc/
-  CMakeLists.txt
-  main.c
-  mocks/
-```
-
-ESP-IDF `v6.1` опубликован — [releases](https://github.com/espressif/esp-idf/releases), [Windows install](https://docs.espressif.com/projects/esp-idf/en/v6.1/esp32s3/get-started/index.html). Для firmware pin managed components `espressif/esp_lvgl_port`, `lvgl/lvgl` и `esp_lcd_touch` в manifest + lockfile **после проверки совместимой комбинации**. Не использовать непроверенные `^latest`.
-
-```powershell
-# В установленной ESP-IDF PowerShell environment:
-cd D:\Work\Projects\Home\panels\FormaPanel\firmware\native
-idf.py set-target esp32s3
-idf.py build
-idf.py size
-```
-
-Для PC:
-- Стартовать от официального [LVGL lv_port_pc_vscode](https://github.com/lvgl/lv_port_pc_vscode), pin commit/submodules.
-- Использовать CMake + Ninja + Windows MSVC и согласованный vcpkg triplet, например `vcpkg install sdl2:x64-windows`. Версии SDL и параметры CMake уточнить по закреплённому revision.
-- Подключить **тот же** `ui_core`, что включён в `firmware/native`; SDL mouse/touch, host clock, mock HA entity events вместо железа и сети.
-- Для 480×480/720×720 выбрать правильный `LV_COLOR_DEPTH`, font bitmaps, image decoder, LVGL configuration, чтобы снизить визуальное расхождение.
-- Встроить screenshot/test API уже в **наш** executable. Команда `formapanel-preview --test` пока **не реализована**.
-
-Native UI authoring варианты:
-- **LVGL Pro Editor**: XML + visual Design mode, live real LVGL, code generation; Community Editor бесплатен для личных проектов, но **CLI** для автоматизированной генерации/тестов лицензируется отдельно ([docs](https://lvgl.io/docs/pro/cli), [license](https://lvgl.io/docs/pro/editor/license)). Не вводить в обязательный free CI.
-- **EEZ Studio**: `.eez-project` → C, без обязательного EEZ Flow runtime, если используется native export; хранить handwritten actions вне generated.
-- **SquareLine**: desktop visual editor → generated C, нужен license/export policy.
-
-Пример отдельного native firmware job **после появления проекта**:
-
-```yaml
-  native-rh01:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v4
-      - uses: espressif/esp-idf-ci-action@v1
-        with:
-          esp_idf_version: v6.1
-          target: esp32s3
-          path: firmware/native
-```
-
-Пример Linux SDL host prerequisites: `sudo apt-get install -y build-essential cmake libsdl2-dev xvfb`, затем `cmake --build` и `xvfb-run` с **реализованным в проекте** mock screenshot runner. Ни один screenshot без физической IPS проверки не доказывает качество градиентов, отклика touch и стабильности DMA/PSRAM.
-
-## 5. Контрольные точки, артефакты и CI policy
-
-| Проверка | Сейчас | Рекомендуемый CI status |
-|---|---|---|
-| SVG/PNG render 480/720, unit tests | Есть `verify.yml` | Blocking |
-| Glyph coverage Cyrillic + font/image manifest/rights | Нет | Blocking после внедрения |
-| ESPHome YAML schema и S3 compile | Нет | Blocking при наличии PoC |
-| Native ESP-IDF S3 compile | Нет | Blocking при наличии PoC |
-| Native SDL screenshots and mocks | Нет | Blocking после реального harness |
-| ESPHome browser render | Нет | Advisory, **не** визуальный oracle |
-| Реальный Guition 480 IPS / GT911 / HA / OTA | Не проверено | Manual acceptance gate, логи/фото |
-| P4 720 | Плата не выбрана | Deferred |
-
-**GitHub Actions artifacts:** `firmware.bin`, `.elf`, `.map`, UI screenshots, resource/latency reports (если генераторы написаны). Не публиковать пригодные для случайной установки бинарники без утверждённого hardware profile и recovery plan. Не выкладывать фабричные файлы/сторонние изображения без лицензии.
-
-## 6. Безопасность и поддержка пяти панелей
-
-- Home Assistant — source of truth; кнопка light action проходит `off → pending → confirmed/on` или `unavailable`, не выдавая optimistic action за факт. Реальные действия HA не нужны для mock preview.
-- Настоящие secrets — только `secrets.yaml`/локальный provision + GitHub Actions secrets (не в job logs). Native MQTT — TLS/auth, reconnect, expiry, stale data; ESPHome — encrypted API + OTA.
-- Разделить общий UI layout для living/bedroom/office и room-specific backgrounds/entity mapping, не копировать пять полных файлов UI.
-- Миграция на ESP32-P4 — **новый board/display/network слой** и новый hardware validation; не только resize canvas.
-- Первое решение [ADR-0003](../04-architecture/adr/0003-platform-evaluation.md) принять после A/B PoC [RH-01/LA-01](../06-validation/rh01-platform-ab-test.md).
+Точные доказательства и границы: [план проверок](../06-validation/test-plan.md),
+[первый Compile](../06-validation/rh01-build-2026-10-29.md),
+[Workshop](../06-validation/ha-workshop-2026-10-31.md).

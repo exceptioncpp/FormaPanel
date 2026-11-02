@@ -1,0 +1,6 @@
+# Compatibility facade: original RH-01 appearance and local demo interaction.
+packages:
+  resources: !include ui/resources.yaml
+  runtime: !include ui/runtime.yaml
+  home: !include ui/pages/room-home.yaml
+  demo: !include behavior/legacy-demo.yaml

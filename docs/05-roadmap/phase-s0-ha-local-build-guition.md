@@ -1,5 +1,12 @@
 # FormaPanel — S0: локальная сборка ESPHome на Home Assistant и первый запуск Guition
 
+**Актуальное дополнение 01.11.2026:** серверная сборка и настоящий LVGL
+preview уже работают. Для повседневной работы использовать
+[runbook сборки](../06-validation/build-and-preview-runbook.md) и
+[существующий board-пакет](../../firmware/esphome/boards/guition-s3-480.yaml).
+Ниже сохранён план аппаратной приёмки и отдельный диагностический шаблон:
+он не заменяет дерево текущей прошивки и не считается испытанным на устройстве.
+
 > **Статус:** инструкция для выполнения; приведённый YAML — **непроверенный на железе** стартовый шаблон, не уже собранная прошивка.  
 > **Актуальность:** 29.10.2026. **Порядок работ:** Home Assistant Device Builder → USB-прошивка → испытания на экране → OTA → GitHub Remote Packages → **только затем GitHub Actions**.  
 > **Устройство:** Guition ESP32-S3-4848S040, 4″ RGB IPS 480×480, ST7701S, GT911; точная ревизия **не подтверждена**.  
@@ -108,6 +115,11 @@ psram:
   mode: octal
   speed: 80MHz
 
+spi:
+  - id: panel_lcd_spi
+    clk_pin: GPIO48
+    mosi_pin: GPIO47
+
 logger:
   level: DEBUG
 
@@ -154,6 +166,7 @@ display:
   - platform: mipi_rgb
     model: GUITION-4848S040
     id: panel_display
+    spi_id: panel_lcd_spi
     update_interval: never
     auto_clear_enabled: false
 

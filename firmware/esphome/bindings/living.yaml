@@ -1,0 +1,46 @@
+substitutions:
+  ha_room_temperature: sensor.formapanel_living_temperature
+  ha_room_humidity: sensor.formapanel_living_humidity
+  ha_room_co2: sensor.formapanel_living_co2
+  ha_light_brightness: input_number.formapanel_living_light_brightness
+  ha_contract_ready: binary_sensor.formapanel_living_contract_ready
+  ha_backend_status: sensor.formapanel_living_backend_status
+  ha_room_mode: input_select.formapanel_living_mode
+  ha_room_target: input_number.formapanel_living_target
+  ha_manual_heat: input_boolean.formapanel_living_manual_heat
+  ha_manual_cool: input_boolean.formapanel_living_manual_cool
+  ha_light_toggle: script.formapanel_living_light_toggle
+  ha_light_actual: sensor.formapanel_living_primary_light_actual
+  # Read-only candidate bridge; the HA package is not installed by this binding.
+  # Current and forecast providers are selected independently in HA.
+  ha_weather_source: sensor.formapanel_living_weather_source
+  ha_weather_condition: sensor.formapanel_living_weather_condition
+  ha_weather_temperature: sensor.formapanel_living_weather_temperature
+  ha_weather_humidity: sensor.formapanel_living_weather_humidity
+  ha_weather_wind: sensor.formapanel_living_weather_wind_speed
+  ha_weather_pressure: sensor.formapanel_living_weather_pressure
+  ha_weather_forecast_source: sensor.formapanel_living_weather_forecast_source
+  ha_weather_tomorrow: sensor.formapanel_living_weather_tomorrow
+  ha_weather_tomorrow_high: sensor.formapanel_living_weather_tomorrow_high
+  ha_weather_tomorrow_low: sensor.formapanel_living_weather_tomorrow_low
+  ha_weather_tomorrow_condition: sensor.formapanel_living_weather_tomorrow_condition
+  ha_weather_day_0: sensor.formapanel_living_weather_day_0
+  ha_weather_day_0_low: sensor.formapanel_living_weather_day_0_low
+  ha_weather_day_0_condition: sensor.formapanel_living_weather_day_0_condition
+  ha_weather_day_0_date: sensor.formapanel_living_weather_day_0_date
+  ha_weather_day_1: sensor.formapanel_living_weather_day_1
+  ha_weather_day_1_low: sensor.formapanel_living_weather_day_1_low
+  ha_weather_day_1_condition: sensor.formapanel_living_weather_day_1_condition
+  ha_weather_day_1_date: sensor.formapanel_living_weather_day_1_date
+  ha_weather_day_2: sensor.formapanel_living_weather_day_2
+  ha_weather_day_2_low: sensor.formapanel_living_weather_day_2_low
+  ha_weather_day_2_condition: sensor.formapanel_living_weather_day_2_condition
+  ha_weather_day_2_date: sensor.formapanel_living_weather_day_2_date
+  ha_weather_day_3: sensor.formapanel_living_weather_day_3
+  ha_weather_day_3_low: sensor.formapanel_living_weather_day_3_low
+  ha_weather_day_3_condition: sensor.formapanel_living_weather_day_3_condition
+  ha_weather_day_3_date: sensor.formapanel_living_weather_day_3_date
+  ha_weather_day_4: sensor.formapanel_living_weather_day_4
+  ha_weather_day_4_low: sensor.formapanel_living_weather_day_4_low
+  ha_weather_day_4_condition: sensor.formapanel_living_weather_day_4_condition
+  ha_weather_day_4_date: sensor.formapanel_living_weather_day_4_date

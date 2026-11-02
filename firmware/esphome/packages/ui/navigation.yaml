@@ -1,0 +1,85 @@
+# Navigation owns page changes; it never dispatches device commands.
+globals:
+  - id: ui_route
+    type: int
+    restore_value: false
+    initial_value: '0'
+  - id: ui_history
+    type: std::vector<int>
+    restore_value: false
+    initial_value: 'std::vector<int>{}'
+
+lvgl:
+  on_boot:
+    - script.execute: ui_home
+
+script:
+  - id: ui_navigate
+    mode: single
+    parameters:
+      target: int
+    then:
+      - lambda: |-
+          const int next = target >= 0 && target <= 5 ? target : 0;
+          if (next == id(ui_route)) return;
+          if (id(ui_history).size() >= 8) id(ui_history).erase(id(ui_history).begin());
+          id(ui_history).push_back(id(ui_route));
+          id(ui_route) = next;
+      - script.execute: ui_show_route
+  - id: ui_back
+    mode: single
+    then:
+      - lambda: |-
+          if (id(ui_history).empty()) {
+            id(ui_route) = 0;
+          } else {
+            id(ui_route) = id(ui_history).back();
+            id(ui_history).pop_back();
+          }
+      - script.execute: ui_show_route
+  - id: ui_home
+    mode: single
+    then:
+      - lambda: |-
+          id(ui_history).clear();
+          id(ui_route) = 0;
+      - script.execute: ui_show_route
+  - id: ui_show_route
+    mode: single
+    then:
+      - lambda: |-
+          if (id(ui_route) < 0 || id(ui_route) > 5) {
+            id(ui_route) = 0;
+            id(ui_history).clear();
+          }
+      - if:
+          condition:
+            lambda: return id(ui_route) == 0;
+          then:
+            - lvgl.page.show: rh01_home
+      - if:
+          condition:
+            lambda: return id(ui_route) == 1;
+          then:
+            - lvgl.page.show: ui_lighting
+      - if:
+          condition:
+            lambda: return id(ui_route) == 2;
+          then:
+            - lvgl.page.show: ui_climate
+      - if:
+          condition:
+            lambda: return id(ui_route) == 3;
+          then:
+            - lvgl.page.show: ui_turbo
+      - if:
+          condition:
+            lambda: return id(ui_route) == 4;
+          then:
+            - lvgl.page.show: ui_weather
+      - if:
+          condition:
+            lambda: return id(ui_route) == 5;
+          then:
+            - lvgl.page.show: ui_system
+

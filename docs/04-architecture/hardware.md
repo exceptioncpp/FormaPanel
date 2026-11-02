@@ -3,10 +3,11 @@
 ## `guition-s3-480` — текущая платформа
 
 - Пользователь: 4.0 inch ESP32-S3 480×480 IPS, capacitive touch, без собственных реле; фактическая маркировка и ревизия **не предоставлены**.
-- Вероятное семейство: Guition/ESP32-S3-4848S040, ST7701S, GT911, PSRAM. Confirm exact board before flashing.
+- Цель текущего source profile: Guition ESP32-S3-4848S040, ST7701S, GT911. Точную PCB ревизию и соответствие preset нужно подтвердить на устройстве.
 - Официальная конфигурация ESPHome: `display.platform: mipi_rgb`, `model: GUITION-4848S040` (https://esphome.io/components/display/mipi_rgb/).
 - Официальная LVGL component ориентирована на LVGL 9 (https://esphome.io/components/lvgl/).
-- Вопросы: pin mapping, backlight GPIO, размер и режим PSRAM, display timing, orientation, touch offsets.
+- В [`boards/guition-s3-480.yaml`](../../firmware/esphome/boards/guition-s3-480.yaml) уже заданы flash 16 MB, octal PSRAM 80 MHz, SPI CLK48/MOSI47, GT911 I²C SDA19/SCL45 и backlight GPIO38. RGB pin mapping/timing/init берутся из встроенного Guition preset ESPHome. Это проверенная сборочная конфигурация, не измеренные характеристики конкретного экземпляра.
+- Аппаратно ещё проверить реальный размер/режим PSRAM, display timing, orientation, touch offsets и стабильность подсветки.
 - Известные исторические issues для ESPHome 2026.7.1: https://github.com/esphome/esphome/issues/17784 (rotation), https://github.com/esphome/esphome/issues/17810 (timings). Проверить их текущий статус, не применять старые workarounds автоматически.
 
 ## `esp32-p4-720` — экспериментальная перспектива

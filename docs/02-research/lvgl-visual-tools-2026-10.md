@@ -1,8 +1,15 @@
 # LVGL: визуальные редакторы и предпросмотр без прошивки (29.10.2026)
 
+**Уточнение 01.11.2026:** это датированное исследование кандидатов. Действуют
+[методология UI](effective-ui-development-2026-11.md) и
+[runbook сборки](../06-validation/build-and-preview-runbook.md).
+Уже проверен настоящий LVGL через **ESPHome host + snapshot из нашего YAML**;
+отдельный native C UI для такого preview не требуется. Самостоятельный
+LVGL PC SDL ниже — другой кандидат. Интерактивный ESPHome SDL/noVNC пока не установлен.
+
 **Статус:** research / tool evaluation, не принятый инструмент. **Платформы:** Windows 11 host, Guition ESP32-S3 480×480, будущая P4 720×720. **Самое важное требование:** художественный fullscreen background, Nunito/Comfortaa + кириллица, живые данные, [LA-01 RGBA светильник](../03-design/light-action-reference-LA-01.md), собственные widgets, переходы и preview без постоянной перепрошивки.
 
-> **Три принципиально разных механизма:** (1) WYSIWYG editor, (2) YAML/DOM emulator в браузере, (3) **настоящий LVGL renderer**, собранный на ПК. Первые два ускоряют layout, но только третий способен исполнять тот же C/C++ LVGL UI, что будет в native firmware. Даже реальный LVGL на PC не моделирует PSRAM bandwidth и конкретный IPS LCD.
+> **Три принципиально разных механизма:** (1) WYSIWYG editor, (2) YAML/DOM emulator в браузере, (3) **настоящий LVGL renderer**. Третий может собираться из ESPHome YAML через host/snapshot или из отдельного native C/XML проекта; это не требование миграции прошивки. Даже реальный LVGL на PC не моделирует PSRAM bandwidth и конкретный IPS LCD.
 
 ## 1. Матрица инструментов
 

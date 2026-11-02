@@ -1,0 +1,22 @@
+name: FormaPanel Workshop
+version: "0.1.1"
+slug: formapanel_workbench
+description: Shared Git workspace, ESPHome builds and native LVGL preview
+url: https://github.com/exceptioncpp/FormaPanel
+arch: [amd64, aarch64]
+startup: application
+boot: auto
+init: false
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:monitor-dashboard
+panel_title: FormaPanel Workshop
+panel_admin: true
+map:
+  - type: homeassistant_config
+    path: /homeassistant
+    read_only: true
+options:
+  workspace: /homeassistant/esphome/formapanel-rh01
+schema:
+  workspace: str

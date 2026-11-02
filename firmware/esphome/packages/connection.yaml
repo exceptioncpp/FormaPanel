@@ -1,0 +1,17 @@
+logger:
+  level: DEBUG
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+
+api:
+  encryption:
+    key: !secret formapanel_api_key
+
+ota:
+  - platform: esphome
+    password: !secret formapanel_ota_password
+
+safe_mode:

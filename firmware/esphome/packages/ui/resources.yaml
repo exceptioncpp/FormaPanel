@@ -1,0 +1,70 @@
+substitutions:
+  formapanel_font_bold: source/fonts/Nunito-Bold.ttf
+  formapanel_font_medium: source/fonts/Nunito-Medium.ttf
+
+# Paths resolve relative to formapanel-rh01.yaml, not this included file.
+# Fonts are subset to the demo glyphs, with 4-bit antialiasing.
+font:
+  - file: ${formapanel_asset_dir}/${formapanel_font_bold}
+    id: rh01_font_clock
+    size: 72
+    bpp: 4
+    glyphs: "-0123456789:"
+  - file: ${formapanel_asset_dir}/${formapanel_font_bold}
+    id: rh01_font_temperature
+    size: 64
+    bpp: 4
+    glyphs: "-0123456789°"
+  - file: ${formapanel_asset_dir}/${formapanel_font_bold}
+    id: rh01_font_weather
+    size: 30
+    bpp: 4
+    glyphs: "+-0123456789°"
+  - file: ${formapanel_asset_dir}/${formapanel_font_medium}
+    id: rh01_font_climate
+    size: 21
+    bpp: 4
+    glyphs: " -0123456789%pm"
+
+  - file: ${formapanel_asset_dir}/${formapanel_font_medium}
+    id: ui_font_body
+    size: 20
+    bpp: 4
+    glyphs: " !\"#%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°–—−…АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+  - file: ${formapanel_asset_dir}/${formapanel_font_bold}
+    id: ui_font_title
+    size: 26
+    bpp: 4
+    glyphs: " !\"#%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°–—−…АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+
+image:
+  - platform: file
+    file: ${formapanel_asset_dir}/generated/480x480/rh01-background.png
+    id: rh01_background
+    type: RGB565
+    byte_order: little_endian
+  - platform: file
+    file: ${formapanel_asset_dir}/generated/480x480/rh01-weather.png
+    id: rh01_weather
+    type: RGB565
+    byte_order: little_endian
+    transparency: alpha_channel
+  - platform: file
+    file: ${formapanel_asset_dir}/generated/480x480/rh01-wind.png
+    id: rh01_wind
+    type: RGB565
+    byte_order: little_endian
+    transparency: alpha_channel
+  - platform: file
+    file: ${formapanel_asset_dir}/generated/480x480/rh01-lamp-on.png
+    id: rh01_lamp_on
+    type: RGB565
+    byte_order: little_endian
+    transparency: alpha_channel
+  - platform: file
+    file: ${formapanel_asset_dir}/generated/480x480/rh01-lamp-off.png
+    id: rh01_lamp_off
+    type: RGB565
+    byte_order: little_endian
+    transparency: alpha_channel
+

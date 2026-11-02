@@ -1,0 +1,3 @@
+build_from:
+  amd64: ghcr.io/esphome/esphome-hassio:2026.10.1
+  aarch64: ghcr.io/esphome/esphome-hassio:2026.10.1

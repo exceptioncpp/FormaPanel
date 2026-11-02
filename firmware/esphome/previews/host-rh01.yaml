@@ -1,0 +1,69 @@
+# Real ESPHome/LVGL rendering on Linux/macOS, without a window or SDL library.
+# This includes the device UI package directly; the ESP32 entry is untouched.
+substitutions:
+  formapanel_asset_dir: ../../../assets
+  preview_build_path: build/formapanel-host-rh01
+  demo_time: "08:00"
+  demo_outdoor_temperature: "+2°"
+  demo_wind: "6"
+  demo_room_temperature: "22°"
+  demo_room_humidity: "45%"
+  demo_room_co2: "680 ppm"
+
+esphome:
+  name: formapanel-host-rh01
+  friendly_name: "FormaPanel RH-01 Native Preview"
+  min_version: 2026.10.1
+  build_path: ${preview_build_path}
+
+host:
+
+logger:
+  level: INFO
+
+packages:
+  room_home: !include ../packages/rh01-ui.yaml
+
+display:
+  - platform: snapshot
+    id: panel_display
+    dimensions: 480x480
+    auto_clear_enabled: false
+    update_interval: never
+
+globals:
+  - id: rh01_capture_started
+    type: bool
+    restore_value: false
+    initial_value: "false"
+
+lvgl:
+  # A headless display has no touch input. Keep the actual widgets/actions.
+  touchscreens: !remove
+  # Static assets/fonts are embedded at compile time. Start after the first
+  # rendered buffer, then allow the complete frame to flush before capture.
+  on_flush_finish:
+    - if:
+        condition:
+          lambda: return !id(rh01_capture_started);
+        then:
+          - globals.set:
+              id: rh01_capture_started
+              value: "true"
+          - delay: 250ms
+          - snapshot.take:
+              id: panel_display
+              filename: rh01-on.bmp
+          - lvgl.image.update:
+              id: rh01_lamp_image
+              src: rh01_lamp_off
+          - delay: 250ms
+          - snapshot.take:
+              id: panel_display
+              filename: rh01-off.bmp
+          - lvgl.image.update:
+              id: rh01_lamp_image
+              src: rh01_lamp_on
+          - logger.log:
+              level: INFO
+              format: "RH01_NATIVE_PREVIEW_COMPLETE"

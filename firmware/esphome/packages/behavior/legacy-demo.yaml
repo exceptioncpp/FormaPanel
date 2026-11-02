@@ -1,0 +1,23 @@
+# Original RH-01 demo behaviour only; never include in functional profiles.
+lvgl:
+  pages:
+    - id: !extend rh01_home
+      widgets:
+        - button:
+            id: !extend rh01_lamp_button
+            checkable: true
+            state:
+              checked: true
+            on_value:
+              - if:
+                  condition:
+                    lambda: return x;
+                  then:
+                    - lvgl.image.update:
+                        id: rh01_lamp_image
+                        src: rh01_lamp_on
+                  else:
+                    - lvgl.image.update:
+                        id: rh01_lamp_image
+                        src: rh01_lamp_off
+              - logger.log: "RH-01 demo lamp toggled (local UI only)"

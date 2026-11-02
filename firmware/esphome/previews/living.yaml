@@ -1,0 +1,9 @@
+esphome:
+  name: formapanel-living-preview
+  friendly_name: FormaPanel Living Preview
+substitutions:
+  preview_build_path: build/formapanel-living-preview
+packages:
+  profile: !include '../profiles/living.yaml'
+  mock: !include '../packages/behavior/mock.yaml'
+  backend: !include 'functional-backend.yaml'

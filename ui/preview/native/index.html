@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>FormaPanel · LVGL preview</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#f3f1e8;background:#171916;color-scheme:dark}
+    *{box-sizing:border-box}body{margin:0;padding:26px 20px 22px}main{width:min(100%,480px);margin:auto}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    h1{font-size:21px;letter-spacing:-.5px;margin:0 0 3px;font-weight:650}p{margin:0}
+    .subtitle{font-size:13px;color:#a8ada4}.badge{font-size:11px;white-space:nowrap;padding:6px 9px;border:1px solid #41483b;border-radius:20px;color:#c2cfb6}
+    .panel{position:relative;width:100%;aspect-ratio:1;box-shadow:0 14px 44px #0005;background:#22261f;overflow:hidden}
+    .panel img{display:block;width:100%;height:100%;object-fit:contain}.panel img[hidden]{display:none}
+    .lamp{position:absolute;left:77.9%;top:70%;width:20%;height:23.3%;padding:0;border:0;border-radius:12px;background:transparent;cursor:pointer}
+    .lamp:focus-visible{outline:2px solid #ffe0a2;outline-offset:-5px}.lamp:disabled{cursor:wait}
+    .placeholder{position:absolute;inset:0;display:grid;place-content:center;padding:32px;text-align:center;font-size:14px;line-height:1.6;color:#adb4a6}
+    .placeholder[hidden]{display:none}.controls{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:20px}
+    .states{display:flex;padding:3px;border:1px solid #41463c;border-radius:12px;gap:3px}
+    .states button{border:0;background:transparent;color:#b9beb2;border-radius:8px;padding:9px 14px}
+    .states button[aria-pressed="true"]{background:#e7ddc5;color:#292b23}
+    button{font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}button:disabled{opacity:.45;cursor:wait}
+    .auto{border:1px solid #41463c;background:transparent;color:#d9dfd2;border-radius:10px;padding:11px 13px}
+    .auto[aria-pressed="true"]{color:#ffe1a1;border-color:#8f7950}button:focus-visible{outline:2px solid #dfc68d;outline-offset:3px}
+    .hint{margin-top:13px;color:#a8ada4;font-size:12px;line-height:1.5}.note{margin-top:20px;padding-top:14px;border-top:1px solid #34392f;color:#8f9788;font-size:11px;line-height:1.6}
+    .note strong{font-weight:500;color:#b8c0b0}#status{font-size:12px;color:#bfc6b7;margin-top:12px;min-height:18px}
+    @media(max-width:380px){body{padding:18px 12px}.badge{display:none}.states button{padding:8px 10px}.auto{padding:10px}h1{font-size:19px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>FormaPanel</h1><p class="subtitle">Предпросмотр панели · 480 × 480</p></div>
+    <span class="badge">Снимок настоящего LVGL</span>
+  </header>
+  <div class="panel">
+    <img id="screen" alt="Экран FormaPanel RH-01 со включённым светильником" width="480" height="480" hidden>
+    <div id="placeholder" class="placeholder" role="status">Загружаем снимки LVGL…</div>
+    <button class="lamp" id="lamp" type="button" aria-label="Переключить свет в демонстрации" disabled></button>
+  </div>
+  <div class="controls" aria-label="Демонстрация света">
+    <div class="states" role="group" aria-label="Состояние светильника">
+      <button id="off" type="button" aria-pressed="false" disabled>Выключен</button>
+      <button id="on" type="button" aria-pressed="true" disabled>Включён</button>
+    </div>
+    <button id="auto" class="auto" type="button" aria-pressed="false" disabled>Автопоказ</button>
+  </div>
+  <p id="status" aria-live="polite">Демонстрационные показания</p>
+  <p class="hint">Нажмите на светильник или выберите состояние.</p>
+  <p class="note"><strong>Это снимки из ESPHome с настоящим LVGL.</strong><br>Переключение показывает два сохранённых кадра и не управляет освещением дома. <span id="build"></span></p>
+</main>
+<script>
+  "use strict";
+  const screen=document.querySelector("#screen"),placeholder=document.querySelector("#placeholder");
+  const controls={on:document.querySelector("#on"),off:document.querySelector("#off"),auto:document.querySelector("#auto"),lamp:document.querySelector("#lamp")};
+  const images={};let current="on",timer=null;
+  function show(state){
+    current=state;screen.src=images[state].src;
+    screen.alt=`Экран FormaPanel RH-01: светильник ${state==="on"?"включён":"выключен"}`;
+    for(const value of ["on","off"])controls[value].setAttribute("aria-pressed",String(value===state));
+    document.querySelector("#status").textContent=`Свет ${state==="on"?"включён":"выключен"} · демонстрационные показания`;
+  }
+  function stop(){clearInterval(timer);timer=null;controls.auto.setAttribute("aria-pressed","false");controls.auto.textContent="Автопоказ";}
+  function select(state){stop();show(state);}
+  controls.on.addEventListener("click",()=>select("on"));controls.off.addEventListener("click",()=>select("off"));
+  controls.lamp.addEventListener("click",()=>select(current==="on"?"off":"on"));
+  controls.auto.addEventListener("click",()=>{if(timer){stop();return;}controls.auto.setAttribute("aria-pressed","true");controls.auto.textContent="Остановить";timer=setInterval(()=>show(current==="on"?"off":"on"),3000);});
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)stop();});
+  async function load(){
+    let meta={};try{const r=await fetch("preview.json",{cache:"no-store"});if(r.ok)meta=await r.json();}catch{}
+    try{
+      await Promise.all(["on","off"].map(state=>new Promise((resolve,reject)=>{
+        const image=new Image();images[state]=image;image.onload=()=>image.naturalWidth===480&&image.naturalHeight===480?resolve():reject(new Error("dimensions"));image.onerror=reject;
+        const hash=meta.snapshots?.[`rh01-${state}.png`]?.sha256||"native";image.src=`rh01-${state}.png?v=${encodeURIComponent(hash.slice(0,16))}`;
+      })));
+      show("on");screen.hidden=false;placeholder.hidden=true;
+      Object.values(controls).forEach(button=>button.disabled=false);
+      if(meta.esphome)document.querySelector("#build").textContent=`ESPHome ${meta.esphome}.`;
+    }catch{placeholder.textContent="Снимки пока недоступны. Обновите страницу после завершения сборки.";document.querySelector("#status").textContent="Ожидаем два кадра 480 × 480";}
+  }
+  load();
+</script>
+</body>
+</html>

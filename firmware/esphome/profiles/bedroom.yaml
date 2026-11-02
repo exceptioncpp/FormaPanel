@@ -1,0 +1,10 @@
+# Example values to make the selected profile visible in the native preview.
+substitutions:
+  room_label: "Спальня"
+  demo_time: "23:10"
+  demo_room_temperature: "21°"
+  demo_room_humidity: "48%"
+  demo_room_co2: "620 ppm"
+
+packages:
+  shared: !include rh01-shared.yaml

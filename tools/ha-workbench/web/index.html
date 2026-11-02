@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>FormaPanel · Мастерская</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header class="header">
+      <div class="brand"><span class="mark" aria-hidden="true">F<span>·</span></span><div><h1>FormaPanel · Мастерская</h1><p>Один репозиторий для редактора, предпросмотра и сборок</p></div></div>
+      <nav aria-label="Рабочие инструменты"><a id="editor" href="/a0d7b954_vscode" target="_top">Studio Code <span aria-hidden="true">↗</span></a><a id="builder" href="/5c53de3b_esphome" target="_top">ESPHome Builder <span aria-hidden="true">↗</span></a></nav>
+    </header>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <section class="toolbar" aria-label="Профиль и действия">
+      <label class="profile">Профиль<select id="profile" disabled><option value="">Загрузка…</option></select></label>
+      <div class="actions"><button id="preview" class="primary" type="button" disabled>Обновить предпросмотр</button><button id="firmware" type="button" disabled>Собрать прошивку</button><button id="validate" class="quiet" type="button" disabled>Проверить</button></div>
+    </section>
+    <div class="workspace">
+      <section class="preview card" aria-labelledby="preview-title">
+        <div class="section-title"><h2 id="preview-title">Предпросмотр</h2><span class="badge">Настоящий LVGL</span></div>
+        <div id="capture-tabs" class="capture-tabs" role="group" aria-label="Страница и состояние" hidden></div>
+        <div id="screen-wrap" class="screen-wrap">
+          <img id="screen" width="480" height="480" alt="Предпросмотр FormaPanel" hidden>
+          <div id="empty" class="empty"><span class="empty-icon" aria-hidden="true">▧</span><strong>Первый кадр ещё не собран</strong><p>Выберите профиль и обновите предпросмотр.</p></div>
+        </div>
+        <div class="preview-foot"><p id="freshness">Снимки из общей конфигурации экрана</p><span>480 × 480</span></div>
+      </section>
+      <aside>
+        <section class="card job-card" aria-labelledby="job-title">
+          <div class="section-title"><h2 id="job-title">Сборка</h2><span id="job-badge" class="job-badge">Ожидание</span></div>
+          <p id="job-summary" class="job-summary" aria-live="polite">Готово к работе</p><p id="job-detail" class="muted">Измените файлы в редакторе и запустите нужное действие.</p>
+          <p id="job-error" class="error" hidden></p>
+          <details id="log-details"><summary>Журнал <span id="log-size"></span></summary><pre id="log" tabindex="0">Журнал появится после запуска.</pre></details>
+        </section>
+        <section class="card source-card" aria-labelledby="source-title">
+          <div class="section-title"><h2 id="source-title">Исходники</h2><span id="git-state" class="git-state">…</span></div>
+          <dl><div><dt>Ветка</dt><dd id="git-branch">—</dd></div><div><dt>Коммит</dt><dd id="git-commit" class="mono">—</dd></div></dl>
+          <p class="muted">Редактор, предпросмотр и сборка используют одни файлы, общие изображения и шрифты.</p>
+          <details class="fingerprints"><summary>Версия исходников</summary><dl><div><dt>Сейчас</dt><dd id="source-hash" class="mono">—</dd></div><div><dt>На снимке</dt><dd id="result-hash" class="mono">—</dd></div></dl></details>
+        </section>
+        <section id="artifacts-card" class="card" aria-labelledby="artifacts-title" hidden><div class="section-title"><h2 id="artifacts-title">Готовая прошивка</h2></div><div id="artifacts" class="artifacts"></div><p class="muted">Файлы для выбранного профиля.</p></section>
+      </aside>
+    </div>
+    <footer>Проверка и сборка запускаются вручную. Снимок LVGL показывает компоновку; цвета и отклик проверяются на дисплее.</footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

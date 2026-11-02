@@ -1,0 +1,60 @@
+# Reused by living/bedroom preview entries; all artwork comes from their profile.
+substitutions:
+  formapanel_asset_dir: ../../../assets
+  preview_build_path: build/formapanel-room-preview
+
+esphome:
+  min_version: 2026.10.1
+  build_path: ${preview_build_path}
+
+host:
+
+logger:
+  level: INFO
+
+display:
+  - platform: snapshot
+    id: panel_display
+    dimensions: 480x480
+    auto_clear_enabled: false
+    update_interval: never
+
+globals:
+  - id: room_capture_started
+    type: bool
+    restore_value: false
+    initial_value: "false"
+
+lvgl:
+  touchscreens: !remove
+  on_flush_finish:
+    - if:
+        condition:
+          lambda: return !id(room_capture_started);
+        then:
+          - globals.set:
+              id: room_capture_started
+              value: "true"
+          - delay: 250ms
+          - snapshot.take:
+              id: panel_display
+              filename: rh01-on.bmp
+          - lvgl.image.update:
+              id: rh01_lamp_image
+              src: rh01_lamp_off
+          - delay: 250ms
+          - snapshot.take:
+              id: panel_display
+              filename: rh01-off.bmp
+          - lvgl.image.update:
+              id: rh01_lamp_image
+              src: rh01_lamp_on
+          - lvgl.page.show: panel_info
+          - delay: 250ms
+          - snapshot.take:
+              id: panel_display
+              filename: info.bmp
+          - lvgl.page.show: rh01_home
+          - logger.log:
+              level: INFO
+              format: "RH01_NATIVE_PREVIEW_COMPLETE"

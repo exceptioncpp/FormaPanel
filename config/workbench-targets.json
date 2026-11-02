@@ -1,0 +1,22 @@
+{
+  "profiles": [
+    {
+      "id": "rh01",
+      "label": "RH-01 · Базовый",
+      "firmware": "firmware/esphome/formapanel-rh01.yaml",
+      "preview": "firmware/esphome/previews/host-rh01.yaml"
+    },
+    {
+      "id": "living",
+      "label": "Гостиная · FormaPanel",
+      "firmware": "firmware/esphome/targets/living.yaml",
+      "preview": "firmware/esphome/previews/living.yaml"
+    },
+    {
+      "id": "bedroom",
+      "label": "Спальня · Демо",
+      "firmware": "firmware/esphome/targets/bedroom.yaml",
+      "preview": "firmware/esphome/previews/bedroom.yaml"
+    }
+  ]
+}

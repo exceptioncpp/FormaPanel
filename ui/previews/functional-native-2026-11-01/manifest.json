@@ -1,0 +1,54 @@
+{
+  "job": "1793559358441-living",
+  "fingerprint": "c96421109a3912c7c2894f0f228c0004ee4be833861a5553051f65fd961fcd41",
+  "images": {
+    "home-off.png": {
+      "size": 270592,
+      "sha256": "d044fb09573c6b39ef7c0c2bcb816bc666a6d8283867e65ca7b9ca0b9d541448"
+    },
+    "home-on.png": {
+      "size": 270997,
+      "sha256": "4c7863450c9c76565c2dbeb134876f2fa1a63443e85062c0021e1be94181361b"
+    },
+    "lighting.png": {
+      "size": 201441,
+      "sha256": "e97c3fca9bc03e2c62ee68bf7d60df431976569bb48e6c3b66bbdcb22de4377d"
+    },
+    "lighting-pending.png": {
+      "size": 202499,
+      "sha256": "4536efb8b059d6ccc8935ea24e0184f56330941e3d6e05ce34e52fcf13cd85c9"
+    },
+    "lighting-unavailable.png": {
+      "size": 201715,
+      "sha256": "7782a255384067456cc8e74640470b3a9d605b6e3b45d006516ba9fea1be1739"
+    },
+    "climate-auto.png": {
+      "size": 202191,
+      "sha256": "c333243d1f23af29805ec9217238bd90d0a9c00b4965a5cbb83d20886b1d3930"
+    },
+    "climate-manual.png": {
+      "size": 204417,
+      "sha256": "9e545c6d36a3cf52cd505393b59ea29489db0654bf4b30f2dc3e3c978563a0c5"
+    },
+    "turbo-running.png": {
+      "size": 204367,
+      "sha256": "3f5c36427fd97ad61a1e442b47bb9a5521c2ca0d62861888418360f18462e22d"
+    },
+    "turbo-stopped.png": {
+      "size": 206227,
+      "sha256": "85b82f1e4adb6eb126a997c1e21543ede974e0887adb8acd8315ab9f38085b93"
+    },
+    "weather.png": {
+      "size": 206731,
+      "sha256": "58395ddaa205cb8a0e5af1c0c8ef2f105b06e03f680dee5f2595ba3c2a330c14"
+    },
+    "weather-unavailable.png": {
+      "size": 203039,
+      "sha256": "80bd618138e627a73716d788059eb4bb08d7910ddc855041e7508a5e72f90541"
+    },
+    "system.png": {
+      "size": 208484,
+      "sha256": "62c04894423564487d9cdaac096227688fc1b90b5c6ee894ae354f17c6a87ac9"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+substitutions:
+  formapanel_asset_dir: ../../../assets
+  formapanel_build_path: build/formapanel-bedroom
+
+esphome:
+  name: formapanel-bedroom
+  friendly_name: "FormaPanel Bedroom Demo"
+  min_version: 2026.10.1
+  build_path: ${formapanel_build_path}
+
+packages:
+  hardware: !include ../boards/guition-s3-480.yaml
+  connection: !include ../packages/connection.yaml
+  diagnostics: !include ../packages/diagnostics.yaml
+  profile: !include ../profiles/bedroom.yaml

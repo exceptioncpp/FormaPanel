@@ -1,5 +1,12 @@
 # Home Assistant integration contract (draft)
 
+Статус 01.11.2026: целевой контракт UI, ещё не подключённый к реальным
+домашним entity IDs. `packages/connection.yaml` уже настраивает Wi-Fi,
+encrypted native API и OTA; `diagnostics.yaml` создаёт служебные сущности.
+Это не означает реализацию перечисленных ниже бытовых действий.
+План mock → HA adapter и проверки обратной связи:
+[практический цикл UI](../02-research/effective-ui-development-2026-11.md).
+
 ## Общие категории входных сущностей
 
 - `time` — локальное время панели/HA/NTP, источники уточнить при интеграции.

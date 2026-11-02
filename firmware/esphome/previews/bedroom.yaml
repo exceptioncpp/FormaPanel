@@ -1,0 +1,10 @@
+esphome:
+  name: formapanel-bedroom-preview
+  friendly_name: "FormaPanel Bedroom Preview"
+
+substitutions:
+  preview_build_path: build/formapanel-bedroom-preview
+
+packages:
+  profile: !include ../profiles/bedroom.yaml
+  backend: !include room-backend.yaml

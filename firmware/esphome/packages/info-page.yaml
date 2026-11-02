@@ -1,0 +1,70 @@
+# Included by room profiles only. The original single-page RH-01 is untouched.
+font:
+  - file: ${formapanel_asset_dir}/source/fonts/Nunito-Medium.ttf
+    id: panel_info_font
+    size: 21
+    bpp: 4
+    glyphs:
+      - " !+,-.0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+      - "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+
+lvgl:
+  # Page order follows package merging; choose the home explicitly.
+  on_boot:
+    - lvgl.page.show: rh01_home
+  pages:
+    - id: !extend rh01_home
+      widgets:
+        - button:
+            id: !extend rh01_lamp_button
+            on_long_press:
+              - lvgl.page.show: panel_info
+    - id: panel_info
+      bg_color: 0x10181A
+      bg_opa: COVER
+      text_color: 0xFFFEF5
+      text_font: panel_info_font
+      pad_all: 0
+      scrollable: false
+      widgets:
+        - label:
+            id: info_title
+            text: "Информация"
+            x: 32
+            y: 30
+        - label:
+            id: info_room
+            text: ${room_label}
+            x: 32
+            y: 92
+        - label:
+            id: info_demo
+            text: "Демонстрационный профиль"
+            x: 32
+            y: 150
+        - label:
+            id: info_stack
+            text: "ESPHome + LVGL"
+            x: 32
+            y: 200
+        - label:
+            id: info_resolution
+            text: "480 x 480"
+            x: 32
+            y: 244
+        - label:
+            id: info_scope
+            text: "Реальные устройства не подключены"
+            x: 32
+            y: 300
+            width: 416
+            height: 64
+        - button:
+            id: info_back
+            x: 32
+            y: 390
+            width: 160
+            height: 60
+            text: "Назад"
+            on_click:
+              - lvgl.page.show: rh01_home

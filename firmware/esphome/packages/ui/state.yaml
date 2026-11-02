@@ -1,0 +1,405 @@
+esphome:
+  includes:
+  - ${formapanel_asset_dir}/../firmware/esphome/packages/ui/ui_state.h
+globals:
+- id: ui_state
+  type: formapanel::State
+  restore_value: false
+  initial_value: formapanel::State{}
+script:
+- id: ui_render
+  then:
+  - lambda: |
+      auto &s=id(ui_state);
+      using S=formapanel::State;
+      auto label=[](lv_obj_t *w,const std::string &text){lv_label_set_text(w,text.c_str());};
+      auto hidden=[](lv_obj_t *w,bool yes){if(yes) lv_obj_add_flag(w,LV_OBJ_FLAG_HIDDEN); else lv_obj_remove_flag(w,LV_OBJ_FLAG_HIDDEN);};
+      auto enabled=[](lv_obj_t *w,bool yes){if(yes) lv_obj_remove_state(w,LV_STATE_DISABLED); else lv_obj_add_state(w,LV_STATE_DISABLED);};
+      label(id(rh01_clock),s.clock);
+      label(id(rh01_room_temperature),S::number(s.temperature,"°"));
+      label(id(rh01_room_humidity),S::number(s.humidity,"%"));
+      label(id(rh01_room_co2),S::number(s.co2," ppm"));
+      label(id(rh01_outdoor_temperature),S::number(s.outdoor,"°"));
+      label(id(rh01_wind_value),S::number(s.wind,""));
+      label(id(lighting_status),s.light_status());
+      label(id(lighting_level),S::number(s.connected && s.light_brightness_known ? s.light_brightness : NAN,"%"));
+      label(id(lighting_detail),s.brightness_detail());
+      if(!s.light_editing) lv_slider_set_value(id(lighting_brightness),s.connected && s.light_brightness_known ? int(s.light_brightness):0,LV_ANIM_OFF);
+      enabled(id(lighting_brightness),s.connected && s.contract_ready && s.light_brightness_known && s.brightness_command!=formapanel::Command::PENDING);
+      enabled(id(lighting_toggle),s.connected && s.contract_ready && s.light_requested_known && s.light_command!=formapanel::Command::PENDING);
+      const bool manual=s.mode_known && s.mode==1;
+      lv_obj_set_y(id(climate_turbo),manual ? 342:369);
+      lv_obj_set_ext_click_area(id(lighting_brightness),24);
+      lv_obj_set_ext_click_area(id(system_brightness),24);
+      hidden(id(climate_auto_group),manual);
+      hidden(id(climate_manual_group),!manual);
+      lv_obj_set_x(id(climate_mode_underline),manual ? 116:30);
+      lv_obj_set_width(id(climate_mode_underline),manual ? 120:64);
+      hidden(id(climate_mode_underline),!s.mode_known);
+      lv_obj_set_style_text_opa(id(climate_auto),manual ? LV_OPA_50:LV_OPA_COVER,0);
+      lv_obj_set_style_text_opa(id(climate_manual),manual ? LV_OPA_COVER:LV_OPA_50,0);
+      label(id(climate_target),S::degrees(s.arc_editing ? lv_arc_get_value(id(climate_arc))/10.0f : s.target_known ? s.target:NAN));
+      label(id(climate_temperature),"В комнате "+S::degrees(s.temperature));
+      label(id(climate_manual_temperature),"В комнате "+S::degrees(s.temperature));
+      label(id(climate_status),!s.connected ? "Нет связи с HA" : s.climate_pending ? "Ожидаем ответ HA" : !s.climate_error.empty() ? s.climate_error : s.mock ? "Отопление" : s.backend_status=="unbound" ? "Оборудование не подключено" : "Запрос хранится в HA");
+      auto manual_status=[&s](bool known,bool on,int channel)->std::string{
+        if(!s.connected) return "Нет связи с HA";
+        if(s.climate_pending && s.climate_kind==channel) return "Ожидаем ответ";
+        if(!s.climate_error.empty()) return "Нет подтверждения";
+        if(!known) return "Не подключено";
+        if(s.mock) return on ? "Включено":"Выключено";
+        return on ? "Запрос: Вкл":"Запрос: Выкл";
+      };
+      label(id(climate_heat_state),manual_status(s.heat_known,s.manual_heat,2));
+      label(id(climate_cool_state),manual_status(s.cool_known,s.manual_cool,3));
+      for(auto *w:{id(climate_auto),id(climate_manual)}) enabled(w,s.connected && s.contract_ready && s.mode_known && !s.climate_pending);
+      for(auto *w:{id(climate_minus),id(climate_plus),id(climate_arc)}) enabled(w,s.connected && s.contract_ready && s.target_known && s.mode_known && !manual && !s.climate_pending);
+      enabled(id(climate_heat),s.connected && s.contract_ready && manual && s.heat_known && !s.climate_pending);
+      enabled(id(climate_cool),s.connected && s.contract_ready && manual && s.cool_known && !s.climate_pending);
+      if(!s.arc_editing) lv_arc_set_value(id(climate_arc),s.target_known ? int(std::lround(s.target*10)):160);
+      label(id(weather_temperature),S::degrees(s.outdoor,true));
+      label(id(weather_condition),s.condition);
+      label(id(weather_source),s.weather_source);
+      label(id(weather_nav_context),!s.connected ? "Нет прогноза" : s.forecast_source.empty() || s.forecast_source==s.weather_source ? "${room_label}" : s.forecast_source=="Gismeteo (резерв)" ? "Прогноз: Gismeteo" : s.forecast_source=="Яндекс.Погода" ? "Прогноз: Яндекс":"Нет прогноза");
+      label(id(weather_details),"Ветер "+S::number(s.wind," км/ч")+"   Влажность "+S::number(s.weather_humidity,"%")+"   "+S::number(s.pressure/1.33322387415f," мм"));
+      label(id(weather_current),s.condition+" "+S::degrees(s.outdoor,true));
+      label(id(weather_forecast),s.forecast);
+      label(id(system_room),"Панель ${room_label}");
+      label(id(system_connection),s.mock ? "Демонстрация / устройства не подключены" : s.connected ? "Home Assistant подключён":"Нет связи с Home Assistant");
+      label(id(system_version),"FormaPanel 0.2 / ${room_id}");
+      label(id(system_weather_source),s.weather_source);
+      label(id(system_brightness_value),S::number(s.panel_brightness,"%"));
+      if(!s.brightness_editing) lv_slider_set_value(id(system_brightness),int(s.panel_brightness),LV_ANIM_OFF);
+      label(id(turbo_status),s.turbo_running ? "из 10 минут":"Таймер остановлен");
+      label(id(turbo_remaining),s.remaining(millis()));
+      hidden(id(turbo_start),s.turbo_running);
+      hidden(id(turbo_stop),!s.turbo_running);
+      auto &d0=s.forecast_days[0];
+      label(id(weather_day_0_title),d0.title);
+      label(id(weather_day_0_high),S::degrees(d0.high,true));
+      label(id(weather_day_0_low),S::degrees(d0.low,true));
+      auto &d1=s.forecast_days[1];
+      label(id(weather_day_1_title),d1.title);
+      label(id(weather_day_1_high),S::degrees(d1.high,true));
+      label(id(weather_day_1_low),S::degrees(d1.low,true));
+      auto &d2=s.forecast_days[2];
+      label(id(weather_day_2_title),d2.title);
+      label(id(weather_day_2_high),S::degrees(d2.high,true));
+      label(id(weather_day_2_low),S::degrees(d2.low,true));
+      auto &d3=s.forecast_days[3];
+      label(id(weather_day_3_title),d3.title);
+      label(id(weather_day_3_high),S::degrees(d3.high,true));
+      label(id(weather_day_3_low),S::degrees(d3.low,true));
+      auto &d4=s.forecast_days[4];
+      label(id(weather_day_4_title),d4.title);
+      label(id(weather_day_4_high),S::degrees(d4.high,true));
+      label(id(weather_day_4_low),S::degrees(d4.low,true));
+  - if:
+      condition:
+        lambda: return id(ui_state).light_known && id(ui_state).light_on;
+      then:
+      - lvgl.image.update:
+          id: rh01_lamp_image
+          src: rh01_lamp_on
+      else:
+      - lvgl.image.update:
+          id: rh01_lamp_image
+          src: rh01_lamp_off
+  - if:
+      condition:
+        lambda: return id(ui_state).light_known && id(ui_state).light_on;
+      then:
+      - lvgl.image.update:
+          id: lighting_lamp_image
+          src: rh01_lamp_on
+      else:
+      - lvgl.image.update:
+          id: lighting_lamp_image
+          src: rh01_lamp_off
+  - if:
+      condition:
+        lambda: return id(ui_state).heat_known && id(ui_state).manual_heat;
+      then:
+      - lvgl.image.update:
+          id: climate_heat_image
+          src: climate_heat_icon_on
+      else:
+      - lvgl.image.update:
+          id: climate_heat_image
+          src: climate_heat_icon_off
+  - if:
+      condition:
+        lambda: return id(ui_state).cool_known && id(ui_state).manual_cool;
+      then:
+      - lvgl.image.update:
+          id: climate_cool_image
+          src: climate_cool_icon_on
+      else:
+      - lvgl.image.update:
+          id: climate_cool_image
+          src: climate_cool_icon_off
+  - if:
+      condition:
+        lambda: const auto &c=id(ui_state).condition_code; return c=="rainy" || c=="pouring" || c=="lightning-rainy";
+      then:
+      - lvgl.image.update:
+          id: weather_icon
+          src: ui_weather_rain
+      else:
+      - if:
+          condition:
+            lambda: const auto &c=id(ui_state).condition_code; return c=="cloudy" || c=="partlycloudy";
+          then:
+          - lvgl.image.update:
+              id: weather_icon
+              src: ui_weather_cloud
+          else:
+          - if:
+              condition:
+                lambda: const auto &c=id(ui_state).condition_code; return c=="sunny";
+              then:
+              - lvgl.image.update:
+                  id: weather_icon
+                  src: ui_weather_sun
+              else:
+              - lvgl.image.update:
+                  id: weather_icon
+                  src: ui_weather_unknown
+  - if:
+      condition:
+        lambda: const auto &c=id(ui_state).forecast_days[0].condition; return c=="rainy" || c=="pouring" || c=="lightning-rainy";
+      then:
+      - lvgl.image.update:
+          id: weather_day_0_icon
+          src: ui_weather_rain_mini
+      else:
+      - if:
+          condition:
+            lambda: const auto &c=id(ui_state).forecast_days[0].condition; return c=="cloudy" || c=="partlycloudy";
+          then:
+          - lvgl.image.update:
+              id: weather_day_0_icon
+              src: ui_weather_cloud_mini
+          else:
+          - if:
+              condition:
+                lambda: const auto &c=id(ui_state).forecast_days[0].condition; return c=="sunny";
+              then:
+              - lvgl.image.update:
+                  id: weather_day_0_icon
+                  src: ui_weather_sun_mini
+              else:
+              - lvgl.image.update:
+                  id: weather_day_0_icon
+                  src: ui_weather_unknown_mini
+  - if:
+      condition:
+        lambda: const auto &c=id(ui_state).forecast_days[1].condition; return c=="rainy" || c=="pouring" || c=="lightning-rainy";
+      then:
+      - lvgl.image.update:
+          id: weather_day_1_icon
+          src: ui_weather_rain_mini
+      else:
+      - if:
+          condition:
+            lambda: const auto &c=id(ui_state).forecast_days[1].condition; return c=="cloudy" || c=="partlycloudy";
+          then:
+          - lvgl.image.update:
+              id: weather_day_1_icon
+              src: ui_weather_cloud_mini
+          else:
+          - if:
+              condition:
+                lambda: const auto &c=id(ui_state).forecast_days[1].condition; return c=="sunny";
+              then:
+              - lvgl.image.update:
+                  id: weather_day_1_icon
+                  src: ui_weather_sun_mini
+              else:
+              - lvgl.image.update:
+                  id: weather_day_1_icon
+                  src: ui_weather_unknown_mini
+  - if:
+      condition:
+        lambda: const auto &c=id(ui_state).forecast_days[2].condition; return c=="rainy" || c=="pouring" || c=="lightning-rainy";
+      then:
+      - lvgl.image.update:
+          id: weather_day_2_icon
+          src: ui_weather_rain_mini
+      else:
+      - if:
+          condition:
+            lambda: const auto &c=id(ui_state).forecast_days[2].condition; return c=="cloudy" || c=="partlycloudy";
+          then:
+          - lvgl.image.update:
+              id: weather_day_2_icon
+              src: ui_weather_cloud_mini
+          else:
+          - if:
+              condition:
+                lambda: const auto &c=id(ui_state).forecast_days[2].condition; return c=="sunny";
+              then:
+              - lvgl.image.update:
+                  id: weather_day_2_icon
+                  src: ui_weather_sun_mini
+              else:
+              - lvgl.image.update:
+                  id: weather_day_2_icon
+                  src: ui_weather_unknown_mini
+  - if:
+      condition:
+        lambda: const auto &c=id(ui_state).forecast_days[3].condition; return c=="rainy" || c=="pouring" || c=="lightning-rainy";
+      then:
+      - lvgl.image.update:
+          id: weather_day_3_icon
+          src: ui_weather_rain_mini
+      else:
+      - if:
+          condition:
+            lambda: const auto &c=id(ui_state).forecast_days[3].condition; return c=="cloudy" || c=="partlycloudy";
+          then:
+          - lvgl.image.update:
+              id: weather_day_3_icon
+              src: ui_weather_cloud_mini
+          else:
+          - if:
+              condition:
+                lambda: const auto &c=id(ui_state).forecast_days[3].condition; return c=="sunny";
+              then:
+              - lvgl.image.update:
+                  id: weather_day_3_icon
+                  src: ui_weather_sun_mini
+              else:
+              - lvgl.image.update:
+                  id: weather_day_3_icon
+                  src: ui_weather_unknown_mini
+  - if:
+      condition:
+        lambda: const auto &c=id(ui_state).forecast_days[4].condition; return c=="rainy" || c=="pouring" || c=="lightning-rainy";
+      then:
+      - lvgl.image.update:
+          id: weather_day_4_icon
+          src: ui_weather_rain_mini
+      else:
+      - if:
+          condition:
+            lambda: const auto &c=id(ui_state).forecast_days[4].condition; return c=="cloudy" || c=="partlycloudy";
+          then:
+          - lvgl.image.update:
+              id: weather_day_4_icon
+              src: ui_weather_cloud_mini
+          else:
+          - if:
+              condition:
+                lambda: const auto &c=id(ui_state).forecast_days[4].condition; return c=="sunny";
+              then:
+              - lvgl.image.update:
+                  id: weather_day_4_icon
+                  src: ui_weather_sun_mini
+              else:
+              - lvgl.image.update:
+                  id: weather_day_4_icon
+                  src: ui_weather_unknown_mini
+- id: ui_light_tap
+  then:
+  - script.execute:
+      id: ui_navigate
+      target: 1
+  - script.execute: ui_light_request
+- id: ui_light_request
+  then:
+  - if:
+      condition:
+        lambda: return id(ui_state).begin_light(millis());
+      then:
+      - script.execute: backend_light_toggle
+  - script.execute: ui_render
+- id: ui_light_brightness_request
+  parameters:
+    value: float
+  then:
+  - if:
+      condition:
+        lambda: return id(ui_state).begin_brightness(value,millis());
+      then:
+      - script.execute:
+          id: backend_light_brightness_set
+          value: !lambda 'return id(ui_state).brightness_expected;'
+          request_id: !lambda 'return int(id(ui_state).brightness_sent);'
+  - script.execute: ui_render
+- id: ui_mode_request
+  then:
+  - if:
+      condition:
+        lambda: auto &s=id(ui_state); return s.connected && s.contract_ready && s.mode_known && !s.climate_pending && mode!=s.mode;
+      then:
+      - lambda: id(ui_state).climate_begin(0,float(mode),millis());
+      - script.execute:
+          id: backend_mode_set
+          mode: !lambda 'return mode;'
+  parameters:
+    mode: int
+- id: ui_target_adjust
+  then:
+  - script.execute:
+      id: ui_target_set
+      value: !lambda 'return id(ui_state).target+delta;'
+  parameters:
+    delta: float
+- id: ui_manual_request
+  then:
+  - if:
+      condition:
+        lambda: 'auto &s=id(ui_state); return s.connected && s.contract_ready && s.mode_known && s.mode==1 && !s.climate_pending &&
+          (channel==0 ? s.heat_known : s.cool_known);'
+      then:
+      - lambda: 'auto &s=id(ui_state); s.climate_begin(channel==0 ? 2:3, float(channel==0 ? !s.manual_heat : !s.manual_cool),millis());'
+      - script.execute:
+          id: backend_manual_set
+          channel: !lambda 'return channel;'
+          value: !lambda 'return channel==0 ? !id(ui_state).manual_heat : !id(ui_state).manual_cool;'
+  parameters:
+    channel: int
+- id: ui_turbo_start
+  then:
+  - lambda: id(ui_state).turbo_start(millis());
+  - script.execute: ui_render
+- id: ui_turbo_stop
+  then:
+  - lambda: id(ui_state).turbo_stop();
+  - script.execute: ui_render
+- id: ui_target_set
+  parameters:
+    value: float
+  then:
+  - if:
+      condition:
+        lambda: auto &s=id(ui_state); return s.connected && s.contract_ready && s.target_known && s.mode_known && s.mode==0 && !s.climate_pending
+          && std::isfinite(value) && std::fabs(std::max(16.0f,std::min(28.0f,value))-s.target)>0.049f;
+      then:
+      - lambda: id(ui_state).climate_begin(1,std::round(std::max(16.0f,std::min(28.0f,value))*10)/10,millis());
+      - script.execute:
+          id: backend_target_set
+          value: !lambda 'return id(ui_state).climate_expected;'
+  - script.execute: ui_render
+- id: ui_panel_brightness
+  parameters:
+    value: float
+  then:
+  - lambda: id(ui_state).panel_brightness=std::max(10.0f,std::min(100.0f,value));
+  - script.execute:
+      id: backend_brightness_set
+      value: !lambda 'return id(ui_state).panel_brightness;'
+  - script.execute: ui_render
+interval:
+- interval: 1s
+  then:
+  - lambda: id(ui_state).tick(millis());
+  - script.execute: ui_render
+external_components:
+- source:
+    type: local
+    path: ${formapanel_asset_dir}/../firmware/esphome/components
+  components:
+  - formapanel_state
+formapanel_state: {}

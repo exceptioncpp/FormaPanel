@@ -1,0 +1,35 @@
+{
+  "family": "Comfortaa",
+  "weights": {
+    "Comfortaa-Bold.ttf": 700,
+    "Comfortaa-Medium.ttf": 500
+  },
+  "license": "SIL Open Font License 1.1; see OFL.txt",
+  "copied_from": "reports/local/font-comparison",
+  "comparison_provenance": {
+    "family": "Comfortaa",
+    "retrieved": "2026-11-01",
+    "source": "https://github.com/google/fonts/blob/main/ofl/comfortaa/Comfortaa[wght].ttf",
+    "blob_sha": "8b8e5f81bf740a8154bb6cd9f4eee5ac4bda6b18",
+    "license": "SIL Open Font License 1.1",
+    "native_lvgl": false,
+    "comparison": "Nunito 700/500 and Comfortaa 700/500, same YAML geometry",
+    "font_sha256": "0fc3f45dc48b614db9c39181502544b37217ecbf8bee2fb35886992bc96c5bd3",
+    "renderer": "browser canvas using RH-01 YAML geometry and real TTFs",
+    "font_weights": [
+      700,
+      500
+    ],
+    "point_sizes": [
+      72,
+      64,
+      30,
+      21
+    ]
+  },
+  "sha256": {
+    "Comfortaa-Bold.ttf": "831f7dca767bd73296e6a8c04048a5da204a628acab8a0b4d5c3db191e29235d",
+    "Comfortaa-Medium.ttf": "55435fdcad233723b8f819b6c07eb7bcde748437fe97b10300b23e385e93bc05",
+    "OFL.txt": "c1276722229ed1866c84a0ec9eb9db174f091c77ea3a605724ada55c476c0296"
+  }
+}

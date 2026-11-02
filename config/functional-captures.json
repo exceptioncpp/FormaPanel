@@ -1,0 +1,16 @@
+{
+  "living": [
+    "home-off.png",
+    "home-on.png",
+    "lighting.png",
+    "lighting-pending.png",
+    "lighting-unavailable.png",
+    "climate-auto.png",
+    "climate-manual.png",
+    "turbo-running.png",
+    "turbo-stopped.png",
+    "weather.png",
+    "weather-unavailable.png",
+    "system.png"
+  ]
+}

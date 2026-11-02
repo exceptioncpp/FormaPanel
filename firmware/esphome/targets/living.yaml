@@ -1,0 +1,15 @@
+substitutions:
+  formapanel_asset_dir: ../../../assets
+  formapanel_build_path: build/formapanel-living
+esphome:
+  name: formapanel-living
+  friendly_name: FormaPanel Living
+  min_version: 2026.10.1
+  build_path: ${formapanel_build_path}
+packages:
+  hardware: !include '../boards/guition-s3-480.yaml'
+  connection: !include '../packages/connection.yaml'
+  diagnostics: !include '../packages/diagnostics.yaml'
+  profile: !include '../profiles/living.yaml'
+  bindings: !include '../bindings/living.yaml'
+  behavior: !include '../packages/behavior/ha.yaml'

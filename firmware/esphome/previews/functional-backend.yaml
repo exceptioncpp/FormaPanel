@@ -1,0 +1,181 @@
+substitutions:
+  formapanel_asset_dir: ../../../assets
+  preview_build_path: build/formapanel-functional-preview
+esphome:
+  min_version: 2026.10.1
+  build_path: ${preview_build_path}
+  on_boot:
+  - priority: -200
+    then:
+    - if:
+        condition:
+          lambda: return !formapanel::self_test();
+        then:
+        - logger.log:
+            level: ERROR
+            format: FUNCTIONAL_CONTRACT_TESTS_FAILED
+        - lambda: std::abort();
+    - logger.log:
+        level: INFO
+        format: FUNCTIONAL_CONTRACT_TESTS_PASS
+    - script.execute: ui_home
+    - script.execute:
+        id: ui_navigate
+        target: 2
+    - script.execute:
+        id: ui_navigate
+        target: 2
+    - lambda: if(id(ui_history).size()!=1 || id(ui_route)!=2) std::abort();
+    - script.execute:
+        id: ui_navigate
+        target: 3
+    - script.execute: ui_back
+    - lambda: if(id(ui_route)!=2 || id(ui_state).light_sent!=0) std::abort();
+    - script.execute: ui_home
+    - lambda: lv_obj_send_event(id(rh01_lamp_button),LV_EVENT_SHORT_CLICKED,nullptr);
+    - lambda: if(id(ui_route)!=1 || id(ui_state).light_sent!=1 || id(ui_state).light_on) std::abort();
+    - script.execute: ui_light_request
+    - lambda: if(id(ui_state).light_sent!=1) std::abort();
+    - delay: 800ms
+    - lambda: if(!id(ui_state).light_on || id(ui_state).light_command!=formapanel::Command::CONFIRMED) std::abort();
+    - script.execute: ui_home
+    - lambda: id(ui_state).disconnect(); lv_obj_send_event(id(rh01_lamp_button),LV_EVENT_SHORT_CLICKED,nullptr);
+    - lambda: if(id(ui_route)!=1 || id(ui_state).light_sent!=1) std::abort();
+    - script.execute: mock_reset
+    - script.execute:
+        id: ui_mode_request
+        mode: 1
+    - script.execute:
+        id: ui_target_set
+        value: 26
+    - lambda: if(id(ui_state).mode!=1 || id(ui_state).target!=24) std::abort();
+    - script.execute:
+        id: ui_manual_request
+        channel: 0
+    - lambda: if(!id(ui_state).manual_heat || id(ui_state).climate_pending) std::abort();
+    - script.execute: mock_reset
+    - script.execute: ui_home
+    - logger.log:
+        level: INFO
+        format: FUNCTIONAL_UI_EVENTS_PASS
+    - delay: 500ms
+    - script.execute:
+        id: ui_navigate
+        target: 0
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: home-off.bmp
+    - lambda: id(ui_state).light_feedback(true,true);
+    - script.execute:
+        id: ui_navigate
+        target: 0
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: home-on.bmp
+    - script.execute:
+        id: ui_navigate
+        target: 1
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: lighting.bmp
+    - lambda: id(ui_state).begin_light(millis());
+    - script.execute:
+        id: ui_navigate
+        target: 1
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: lighting-pending.bmp
+    - lambda: id(ui_state).disconnect();
+    - script.execute:
+        id: ui_navigate
+        target: 1
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: lighting-unavailable.bmp
+    - script.execute: mock_reset
+    - script.execute:
+        id: ui_navigate
+        target: 2
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: climate-auto.bmp
+    - lambda: id(ui_state).mode=1; id(ui_state).manual_heat=true;
+    - script.execute:
+        id: ui_navigate
+        target: 2
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: climate-manual.bmp
+    - lambda: id(ui_state).turbo_start(millis());
+    - script.execute:
+        id: ui_navigate
+        target: 3
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: turbo-running.bmp
+    - lambda: id(ui_state).turbo_stop();
+    - script.execute:
+        id: ui_navigate
+        target: 3
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: turbo-stopped.bmp
+    - script.execute: mock_reset
+    - script.execute:
+        id: ui_navigate
+        target: 4
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: weather.bmp
+    - lambda: id(ui_state).disconnect();
+    - script.execute:
+        id: ui_navigate
+        target: 4
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: weather-unavailable.bmp
+    - script.execute: mock_reset
+    - script.execute:
+        id: ui_navigate
+        target: 5
+    - script.execute: ui_render
+    - delay: 250ms
+    - snapshot.take:
+        id: panel_display
+        filename: system.bmp
+    - logger.log:
+        level: INFO
+        format: RH01_NATIVE_PREVIEW_COMPLETE
+host: null
+logger:
+  level: INFO
+display:
+- platform: snapshot
+  id: panel_display
+  dimensions: 480x480
+  auto_clear_enabled: false
+  update_interval: never
+lvgl:
+  touchscreens: !remove ''

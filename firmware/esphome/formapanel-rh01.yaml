@@ -1,0 +1,23 @@
+# Entry point. Keep the repository tree intact when copying it to HA.
+# All displayed values are a fixed visual demo; the lamp toggles locally only.
+substitutions:
+  device_name: formapanel-rh01
+  friendly_name: "FormaPanel RH-01"
+  formapanel_asset_dir: ../../assets
+  demo_time: "08:00"
+  demo_outdoor_temperature: "+2°"
+  demo_wind: "6"
+  demo_room_temperature: "22°"
+  demo_room_humidity: "45%"
+  demo_room_co2: "680 ppm"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  min_version: 2026.10.0
+
+packages:
+  hardware: !include boards/guition-s3-480.yaml
+  connection: !include packages/connection.yaml
+  diagnostics: !include packages/diagnostics.yaml
+  room_home: !include packages/rh01-ui.yaml

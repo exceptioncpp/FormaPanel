@@ -1,0 +1,26 @@
+{
+  "folders": [{ "name": "FormaPanel", "path": "." }],
+  "settings": {
+    "files.eol": "\n",
+    "files.trimTrailingWhitespace": true,
+    "editor.tabSize": 2,
+    "yaml.customTags": [
+      "!secret scalar", "!lambda scalar", "!include scalar", "!include mapping",
+      "!include_dir_list scalar", "!include_dir_merge_list scalar",
+      "!include_dir_named scalar", "!include_dir_merge_named scalar",
+      "!extend scalar", "!remove scalar"
+    ],
+    "search.exclude": {
+      "**/.esphome/**": true,
+      "**/.pio/**": true,
+      "reports/local/**": true,
+      "**/__pycache__/**": true
+    },
+    "files.watcherExclude": {
+      "**/.esphome/**": true,
+      "**/.pio/**": true,
+      "**/reports/local/**": true
+    },
+    "git.autofetch": false
+  }
+}

@@ -1,0 +1,184 @@
+lvgl:
+  pages:
+  - id: !extend 'rh01_home'
+    widgets:
+    - button:
+        id: !extend 'home_weather_hit'
+        on_short_click:
+        - script.execute:
+            id: ui_navigate
+            target: 4
+    - button:
+        id: !extend 'home_climate_hit'
+        on_short_click:
+        - script.execute:
+            id: ui_navigate
+            target: 2
+    - button:
+        id: !extend 'rh01_lamp_button'
+        on_short_click:
+        - script.execute: ui_light_tap
+  - id: !extend 'ui_lighting'
+    widgets:
+    - button:
+        id: !extend 'lighting_toggle'
+        on_short_click:
+        - script.execute: ui_light_request
+    - button:
+        id: !extend 'lighting_home'
+        on_short_click:
+        - script.execute: ui_home
+    - button:
+        id: !extend 'lighting_back'
+        on_short_click:
+        - script.execute: ui_back
+    - button:
+        id: !extend 'lighting_settings'
+        on_short_click:
+        - script.execute:
+            id: ui_navigate
+            target: 5
+    - slider:
+        id: !extend 'lighting_brightness'
+        on_press:
+        - lambda: id(ui_state).light_editing=true;
+        on_release:
+        - lambda: id(ui_state).light_editing=false;
+        - script.execute:
+            id: ui_light_brightness_request
+            value: !lambda 'return float(lv_slider_get_value(id(lighting_brightness)));'
+        - script.execute: ui_render
+  - id: !extend 'ui_climate'
+    widgets:
+    - button:
+        id: !extend 'climate_auto'
+        on_short_click:
+        - script.execute:
+            id: ui_mode_request
+            mode: 0
+    - button:
+        id: !extend 'climate_manual'
+        on_short_click:
+        - script.execute:
+            id: ui_mode_request
+            mode: 1
+    - button:
+        id: !extend 'climate_turbo'
+        on_short_click:
+        - script.execute:
+            id: ui_navigate
+            target: 3
+    - button:
+        id: !extend 'climate_home'
+        on_short_click:
+        - script.execute: ui_home
+    - button:
+        id: !extend 'climate_back'
+        on_short_click:
+        - script.execute: ui_back
+    - button:
+        id: !extend 'climate_settings'
+        on_short_click:
+        - script.execute:
+            id: ui_navigate
+            target: 5
+    - obj:
+        id: !extend 'climate_auto_group'
+        widgets:
+        - button:
+            id: !extend 'climate_minus'
+            on_short_click:
+            - script.execute:
+                id: ui_target_adjust
+                delta: -0.5
+        - button:
+            id: !extend 'climate_plus'
+            on_short_click:
+            - script.execute:
+                id: ui_target_adjust
+                delta: 0.5
+        - arc:
+            id: !extend 'climate_arc'
+            on_press:
+            - lambda: id(ui_state).arc_editing=true;
+            on_value:
+            - lambda: if(id(ui_state).arc_editing) lv_label_set_text(id(climate_target),formapanel::State::degrees(lv_arc_get_value(id(climate_arc))/10.0f).c_str());
+            on_release:
+            - lambda: id(ui_state).arc_editing=false;
+            - script.execute:
+                id: ui_target_set
+                value: !lambda 'return lv_arc_get_value(id(climate_arc))/10.0f;'
+    - obj:
+        id: !extend 'climate_manual_group'
+        widgets:
+        - button:
+            id: !extend 'climate_heat'
+            on_short_click:
+            - script.execute:
+                id: ui_manual_request
+                channel: 0
+        - button:
+            id: !extend 'climate_cool'
+            on_short_click:
+            - script.execute:
+                id: ui_manual_request
+                channel: 1
+  - id: !extend 'ui_turbo'
+    widgets:
+    - button:
+        id: !extend 'turbo_start'
+        on_short_click:
+        - script.execute: ui_turbo_start
+    - button:
+        id: !extend 'turbo_stop'
+        on_short_click:
+        - script.execute: ui_turbo_stop
+    - button:
+        id: !extend 'turbo_home'
+        on_short_click:
+        - script.execute: ui_home
+    - button:
+        id: !extend 'turbo_back'
+        on_short_click:
+        - script.execute: ui_back
+    - button:
+        id: !extend 'turbo_settings'
+        on_short_click:
+        - script.execute:
+            id: ui_navigate
+            target: 5
+  - id: !extend 'ui_weather'
+    widgets:
+    - button:
+        id: !extend 'weather_home'
+        on_short_click:
+        - script.execute: ui_home
+    - button:
+        id: !extend 'weather_back'
+        on_short_click:
+        - script.execute: ui_back
+    - button:
+        id: !extend 'weather_settings'
+        on_short_click:
+        - script.execute:
+            id: ui_navigate
+            target: 5
+  - id: !extend 'ui_system'
+    widgets:
+    - button:
+        id: !extend 'system_home'
+        on_short_click:
+        - script.execute: ui_home
+    - button:
+        id: !extend 'system_back'
+        on_short_click:
+        - script.execute: ui_back
+    - slider:
+        id: !extend 'system_brightness'
+        on_press:
+        - lambda: id(ui_state).brightness_editing=true;
+        on_release:
+        - lambda: id(ui_state).brightness_editing=false;
+        - script.execute:
+            id: ui_panel_brightness
+            value: !lambda 'return float(lv_slider_get_value(id(system_brightness)));'

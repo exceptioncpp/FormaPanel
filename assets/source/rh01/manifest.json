@@ -1,0 +1,63 @@
+{
+  "id": "RH-01",
+  "date": "2026-10-29",
+  "status": "candidate-device-assets",
+  "design_reference": "references/01.jpg",
+  "generator": "tools/render_rh01.py",
+  "dependencies": "Pillow>=10,<13",
+  "background": {
+    "path": "assets/source/backgrounds/golden-sunrise-over-alpine-lake.png",
+    "sha256": "e0bb207008fd2d57880ce0f639a5460de8e8f634e4c5003d2a88ec96549d76f7",
+    "method": "480x480 Lanczos resize, saturation 0.88 and smooth left/bottom readability vignette; never samples UI reference pixels",
+    "license": "Existing repository source asset; original provenance and redistribution status unchanged."
+  },
+  "decorations": {
+    "method": "Original procedural shapes and shading in render_rh01.py; shared geometric mask for both lamp states",
+    "alpha": "Full RGBA, transparent corners; wire fades to zero above y=20 on local 96x112 canvas"
+  },
+  "placements_480": {
+    "weather": [
+      30,
+      27
+    ],
+    "wind": [
+      160,
+      43
+    ],
+    "lamp-on": [
+      374,
+      336
+    ],
+    "lamp-off": [
+      374,
+      336
+    ]
+  },
+  "exports": [
+    {
+      "path": "assets/generated/480x480/rh01-background.png",
+      "sha256": "9ba6cb1cd5c46e36b229e7f0740ce3a1845de548afa6b1f8c9d2b40a943ac714"
+    },
+    {
+      "path": "assets/generated/480x480/rh01-lamp-off.png",
+      "sha256": "aca42fac4bf53ad53282c9309558e32353b10cfce3cd66165f997a551684704f"
+    },
+    {
+      "path": "assets/generated/480x480/rh01-lamp-on.png",
+      "sha256": "c659bf9ab1b72856be3e13daffba1f9fcf4d7027563b45a3b02b15c54cd938b3"
+    },
+    {
+      "path": "assets/generated/480x480/rh01-weather.png",
+      "sha256": "a6baa1ba18feeafa2038182b5574bc986b52b5f6ebc277eacaaac1994f8e1b4a"
+    },
+    {
+      "path": "assets/generated/480x480/rh01-wind.png",
+      "sha256": "7d4a3eebe18bf44a256be7d2f185d755b9617ea45637df679a5c2a20ddaf89b1"
+    }
+  ],
+  "validation": {
+    "unit_tests": "tests/test_rh01_assets.py",
+    "hardware": "Not yet validated on physical display",
+    "background_reference_error": "Masked mean absolute RGB difference 6.66 vs raw 15.93 (8-bit), excluding weather/clock/climate/lamp bounds"
+  }
+}

@@ -1,0 +1,363 @@
+# ISOLATED CANDIDATE — NOT INSTALLED. No physical output actions.
+input_select:
+  formapanel_living_mode:
+    name: FormaPanel living mode
+    options:
+    - Auto
+    - Manual
+input_number:
+  formapanel_living_target:
+    name: FormaPanel living target
+    min: 16
+    max: 28
+    step: 0.1
+    unit_of_measurement: °C
+    mode: box
+  formapanel_living_weather_max_age_seconds:
+    name: FormaPanel weather freshness limit (0 = unconfigured)
+    min: 0
+    max: 86400
+    step: 60
+    unit_of_measurement: s
+    mode: box
+    initial: 7200
+input_boolean:
+  formapanel_living_manual_heat:
+    name: FormaPanel living manual heat
+  formapanel_living_manual_cool:
+    name: FormaPanel living manual cool
+  formapanel_living_primary_light_requested:
+    name: FormaPanel living primary light requested
+  formapanel_living_backend_connected:
+    name: FormaPanel living backend connected
+    initial: false
+script:
+  formapanel_living_light_toggle:
+    alias: FormaPanel living desired light toggle ONLY
+    mode: queued
+    max: 10
+    sequence:
+    - variables:
+        baseline: '{% set actual = states(''sensor.formapanel_living_primary_light_actual'') %}{{ actual if actual
+          in [''on'', ''off''] else states(''input_boolean.formapanel_living_primary_light_requested'') }}'
+    - condition: template
+      value_template: '{{ baseline in [''on'', ''off''] }}'
+    - choose:
+      - conditions: '{{ baseline == ''off'' }}'
+        sequence:
+        - action: input_boolean.turn_on
+          target: &id001
+            entity_id: input_boolean.formapanel_living_primary_light_requested
+      default:
+      - action: input_boolean.turn_off
+        target: *id001
+template:
+- binary_sensor:
+  - name: formapanel_living_ready
+    unique_id: formapanel_living_ready
+    default_entity_id: binary_sensor.formapanel_living_ready
+    state: '{{ false }}'
+    attributes:
+      reason: unbound physical adapters; backend_connected is diagnostic only
+      room_id: living
+      area_id: unbound
+  sensor:
+  - name: formapanel_living_backend_status
+    unique_id: formapanel_living_backend_status
+    default_entity_id: sensor.formapanel_living_backend_status
+    state: unbound
+    attributes:
+      room_id: living
+      area_id: unbound
+      reason: Physical adapters and room area are not provisioned; helper changes are desired only.
+  - name: formapanel_living_primary_light_actual
+    unique_id: formapanel_living_primary_light_actual
+    default_entity_id: sensor.formapanel_living_primary_light_actual
+    state: unknown
+  - name: formapanel_living_heating_actual
+    unique_id: formapanel_living_heating_actual
+    default_entity_id: sensor.formapanel_living_heating_actual
+    state: unknown
+  - name: formapanel_living_cooling_actual
+    unique_id: formapanel_living_cooling_actual
+    default_entity_id: sensor.formapanel_living_cooling_actual
+    state: unknown
+  - name: formapanel_living_weather_source
+    unique_id: formapanel_living_weather_source
+    default_entity_id: sensor.formapanel_living_weather_source
+    state: |-
+      {% set ttl = states('input_number.formapanel_living_weather_max_age_seconds') | float(0) %}
+      {% set ns = namespace(source='unavailable') %}
+      {% for e in ['weather.yandex_pogoda', 'weather.home_assistant_gismeteo'] %}
+        {% set age = as_timestamp(now()) - as_timestamp(states[e].last_updated, 0) if has_value(e) else -1 %}
+        {% if ns.source == 'unavailable' and ttl > 0 and 0 <= age <= ttl and state_attr(e, 'temperature_unit') == '°C' and is_number(state_attr(e, 'temperature')) %}
+          {% set ns.source = e %}
+        {% endif %}
+      {% endfor %}
+      {{ ns.source }}
+    attributes:
+      freshness_policy: max_age_seconds=0 disables publication; configure from provider cadence
+      updated_at: |-
+        {% set ttl = states('input_number.formapanel_living_weather_max_age_seconds') | float(0) %}
+        {% set ns = namespace(source='unavailable') %}
+        {% for e in ['weather.yandex_pogoda', 'weather.home_assistant_gismeteo'] %}
+          {% set age = as_timestamp(now()) - as_timestamp(states[e].last_updated, 0) if has_value(e) else -1 %}
+          {% if ns.source == 'unavailable' and ttl > 0 and 0 <= age <= ttl and state_attr(e, 'temperature_unit') == '°C' and is_number(state_attr(e, 'temperature')) %}
+            {% set ns.source = e %}
+          {% endif %}
+        {% endfor %}
+        {{ states[ns.source].last_updated.isoformat() if ns.source != 'unavailable' else none }}
+  - name: formapanel_living_weather_forecast_source
+    unique_id: formapanel_living_weather_forecast_source
+    default_entity_id: sensor.formapanel_living_weather_forecast_source
+    state: |-
+      {% set ttl = states('input_number.formapanel_living_weather_max_age_seconds') | float(0) %}
+      {% set tomorrow = (now() + timedelta(days=1)).date() %}
+      {% set ns = namespace(source='unavailable') %}
+      {% for e in ['weather.yandex_pogoda', 'weather.home_assistant_gismeteo'] %}
+        {% set age = as_timestamp(now()) - as_timestamp(states[e].last_updated, 0) if has_value(e) else -1 %}
+        {% if ns.source == 'unavailable' and ttl > 0 and 0 <= age <= ttl and state_attr(e, 'temperature_unit') == '°C' %}
+          {% for row in state_attr(e, 'forecast_twice_daily') or [] %}
+            {% if row is mapping %}
+              {% set dt = as_datetime(row.get('datetime'), none) %}
+              {% if dt is not none and as_local(dt).date() == tomorrow and is_number(row.get('native_temperature')) and row.get('condition') not in [none, '', 'unknown', 'unavailable'] %}
+                {% set ns.source = e %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+      {{ ns.source }}
+  - name: formapanel_living_weather_condition
+    unique_id: formapanel_living_weather_condition
+    default_entity_id: sensor.formapanel_living_weather_condition
+    availability: '{{ has_value(states(''sensor.formapanel_living_weather_source'')) }}'
+    state: '{{ states(states(''sensor.formapanel_living_weather_source'')) }}'
+  - name: formapanel_living_weather_temperature
+    unique_id: formapanel_living_weather_temperature
+    default_entity_id: sensor.formapanel_living_weather_temperature
+    availability: '{{ is_number(state_attr(states(''sensor.formapanel_living_weather_source''), ''temperature''))
+      }}'
+    state: '{{ state_attr(states(''sensor.formapanel_living_weather_source''), ''temperature'') }}'
+    unit_of_measurement: °C
+  - name: formapanel_living_weather_humidity
+    unique_id: formapanel_living_weather_humidity
+    default_entity_id: sensor.formapanel_living_weather_humidity
+    availability: '{{ is_number(state_attr(states(''sensor.formapanel_living_weather_source''), ''humidity'')) }}'
+    state: '{{ state_attr(states(''sensor.formapanel_living_weather_source''), ''humidity'') }}'
+    unit_of_measurement: '%'
+  - name: formapanel_living_weather_wind_speed
+    unique_id: formapanel_living_weather_wind_speed
+    default_entity_id: sensor.formapanel_living_weather_wind_speed
+    availability: '{{ is_number(state_attr(states(''sensor.formapanel_living_weather_source''), ''wind_speed''))
+      and state_attr(states(''sensor.formapanel_living_weather_source''), ''wind_speed_unit'') in {''km/h'': 1,
+      ''m/s'': 3.6, ''mph'': 1.609344, ''kn'': 1.852} }}'
+    state: '{% set e = states(''sensor.formapanel_living_weather_source'') %}{% set factor = {''km/h'': 1, ''m/s'':
+      3.6, ''mph'': 1.609344, ''kn'': 1.852}.get(state_attr(e, ''wind_speed_unit'')) %}{{ (state_attr(e, ''wind_speed'')
+      | float * factor) | round(2) if factor is not none and is_number(state_attr(e, ''wind_speed'')) else none
+      }}'
+    attributes:
+      unit: km/h
+      source_unit: '{{ state_attr(states(''sensor.formapanel_living_weather_source''), ''wind_speed_unit'') }}'
+    unit_of_measurement: km/h
+  - name: formapanel_living_weather_details
+    unique_id: formapanel_living_weather_details
+    default_entity_id: sensor.formapanel_living_weather_details
+    state: '{{ ''available'' if has_value(states(''sensor.formapanel_living_weather_source'')) else ''unavailable''
+      }}'
+    attributes:
+      apparent_temperature: '{{ state_attr(states(''sensor.formapanel_living_weather_source''), ''apparent_temperature'')
+        }}'
+      pressure: '{% set e = states(''sensor.formapanel_living_weather_source'') %}{% set factor = {''hPa'': 1, ''mmHg'':
+        1.33322387415, ''inHg'': 33.8638866667, ''Pa'': 0.01}.get(state_attr(e, ''pressure_unit'')) %}{{ (state_attr(e,
+        ''pressure'') | float * factor) | round(2) if factor is not none and is_number(state_attr(e, ''pressure''))
+        else none }}'
+      pressure_unit: hPa
+      wind_bearing: '{{ state_attr(states(''sensor.formapanel_living_weather_source''), ''wind_bearing'') }}'
+      wind_gust_speed: '{% set e = states(''sensor.formapanel_living_weather_source'') %}{% set factor = {''km/h'':
+        1, ''m/s'': 3.6, ''mph'': 1.609344, ''kn'': 1.852}.get(state_attr(e, ''wind_speed_unit'')) %}{{ (state_attr(e,
+        ''wind_gust_speed'') | float * factor) | round(2) if factor is not none and is_number(state_attr(e, ''wind_gust_speed''))
+        else none }}'
+      temperature_unit: '{{ state_attr(states(''sensor.formapanel_living_weather_source''), ''temperature_unit'')
+        }}'
+      wind_speed_unit: km/h
+      source_entity: '{{ states(''sensor.formapanel_living_weather_source'') }}'
+      updated_at: '{{ state_attr(''sensor.formapanel_living_weather_source'', ''updated_at'') }}'
+  - name: formapanel_living_weather_tomorrow
+    unique_id: formapanel_living_weather_tomorrow
+    default_entity_id: sensor.formapanel_living_weather_tomorrow
+    state: '{{ ''available'' if has_value(states(''sensor.formapanel_living_weather_forecast_source'')) else ''unavailable''
+      }}'
+    attributes:
+      source_entity: '{{ states(''sensor.formapanel_living_weather_forecast_source'') }}'
+      date: '{{ (now() + timedelta(days=1)).date().isoformat() }}'
+      entries: |-
+        {% set e = states('sensor.formapanel_living_weather_forecast_source') %}
+        {% set tomorrow = (now() + timedelta(days=1)).date() %}
+        {% set ns = namespace(rows=[]) %}
+        {% for row in state_attr(e, 'forecast_twice_daily') or [] %}
+          {% if row is mapping %}
+            {% set dt = as_datetime(row.get('datetime'), none) %}
+            {% if dt is not none and as_local(dt).date() == tomorrow and is_number(row.get('native_temperature')) and row.get('condition') not in [none, '', 'unknown', 'unavailable'] %}
+              {% set ns.rows = ns.rows + [dict(date=as_local(dt).date().isoformat(), datetime=row.get('datetime'), is_daytime=row.get('is_daytime'), high=row.get('native_temperature') | float, low=(row.get('native_templow') | float if is_number(row.get('native_templow')) else none), condition=row.get('condition'))] %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.rows }}
+      temperature_unit: '{{ state_attr(states(''sensor.formapanel_living_weather_forecast_source''), ''temperature_unit'')
+        }}'
+      updated_at: '{{ states[states(''sensor.formapanel_living_weather_forecast_source'')].last_updated.isoformat()
+        if has_value(states(''sensor.formapanel_living_weather_forecast_source'')) else none }}'
+      freshness_basis: provider last_updated; not separately verified forecast issue time
+      rows: |-
+        {% set e = states('sensor.formapanel_living_weather_forecast_source') %}
+        {% set tomorrow = (now() + timedelta(days=1)).date() %}
+        {% set ns = namespace(rows=[]) %}
+        {% for row in state_attr(e, 'forecast_twice_daily') or [] %}
+          {% if row is mapping %}
+            {% set dt = as_datetime(row.get('datetime'), none) %}
+            {% if dt is not none and as_local(dt).date() == tomorrow and is_number(row.get('native_temperature')) and row.get('condition') not in [none, '', 'unknown', 'unavailable'] %}
+              {% set ns.rows = ns.rows + [dict(date=as_local(dt).date().isoformat(), high=row.get('native_temperature') | float, low=(row.get('native_templow') | float if is_number(row.get('native_templow')) else none), condition=row.get('condition'))] %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.rows }}
+  - name: formapanel_living_weather_tomorrow_high
+    unique_id: formapanel_living_weather_tomorrow_high
+    default_entity_id: sensor.formapanel_living_weather_tomorrow_high
+    availability: '{{ (state_attr(''sensor.formapanel_living_weather_tomorrow'', ''entries'') or []) | count > 0
+      }}'
+    state: '{% set rows = state_attr(''sensor.formapanel_living_weather_tomorrow'', ''entries'') or [] %}{{ rows
+      | map(attribute=''high'') | max if rows else none }}'
+    attributes:
+      source_entity: '{{ states(''sensor.formapanel_living_weather_forecast_source'') }}'
+    unit_of_measurement: °C
+  - name: formapanel_living_weather_tomorrow_low
+    unique_id: formapanel_living_weather_tomorrow_low
+    default_entity_id: sensor.formapanel_living_weather_tomorrow_low
+    availability: '{{ (state_attr(''sensor.formapanel_living_weather_tomorrow'', ''entries'') or []) | selectattr(''low'',
+      ''number'') | list | count > 0 }}'
+    state: '{% set rows = (state_attr(''sensor.formapanel_living_weather_tomorrow'', ''entries'') or []) | selectattr(''low'',
+      ''number'') | list %}{{ rows | map(attribute=''low'') | min if rows else none }}'
+    attributes:
+      source_entity: '{{ states(''sensor.formapanel_living_weather_forecast_source'') }}'
+    unit_of_measurement: °C
+  - name: formapanel_living_weather_tomorrow_condition
+    unique_id: formapanel_living_weather_tomorrow_condition
+    default_entity_id: sensor.formapanel_living_weather_tomorrow_condition
+    availability: '{{ (state_attr(''sensor.formapanel_living_weather_tomorrow'', ''entries'') or []) | count > 0
+      }}'
+    state: '{% set rows = state_attr(''sensor.formapanel_living_weather_tomorrow'', ''entries'') or [] %}{{ (rows
+      | selectattr(''is_daytime'', ''equalto'', true) | list or rows)[0].condition if rows else none }}'
+    attributes:
+      source_entity: '{{ states(''sensor.formapanel_living_weather_forecast_source'') }}'
+  - name: formapanel_living_heartbeat
+    unique_id: formapanel_living_heartbeat
+    default_entity_id: sensor.formapanel_living_heartbeat
+    state: '{{ as_timestamp(now()) | int }}'
+    attributes:
+      room_id: living
+  - name: formapanel_living_weather_pressure
+    unique_id: formapanel_living_weather_pressure
+    default_entity_id: sensor.formapanel_living_weather_pressure
+    unit_of_measurement: hPa
+    availability: '{{ is_number(state_attr(states(''sensor.formapanel_living_weather_source''), ''pressure'')) and
+      state_attr(states(''sensor.formapanel_living_weather_source''), ''pressure_unit'') in {''hPa'': 1, ''mmHg'':
+      1.33322387415, ''inHg'': 33.8638866667, ''Pa'': 0.01} }}'
+    state: '{% set e = states(''sensor.formapanel_living_weather_source'') %}{% set factor = {''hPa'': 1, ''mmHg'':
+      1.33322387415, ''inHg'': 33.8638866667, ''Pa'': 0.01}.get(state_attr(e, ''pressure_unit'')) %}{{ (state_attr(e,
+      ''pressure'') | float * factor) | round(2) if factor is not none and is_number(state_attr(e, ''pressure''))
+      else none }}'
+  - name: formapanel_living_weather_forecast_days
+    unique_id: formapanel_living_weather_forecast_days
+    default_entity_id: sensor.formapanel_living_weather_forecast_days
+    state: "{{ 'available' if has_value(states('sensor.formapanel_living_weather_forecast_source')) else 'unavailable' }}"
+    attributes:
+      source_entity: "{{ states('sensor.formapanel_living_weather_forecast_source') }}"
+      days: |-
+        {% set e = states('sensor.formapanel_living_weather_forecast_source') %}
+        {% set ns = namespace(days=[]) %}
+        {% for offset in range(1, 6) %}
+          {% set date = (now() + timedelta(days=offset)).date() %}
+          {% set day = namespace(rows=[]) %}
+          {% for row in state_attr(e, 'forecast_twice_daily') or [] %}
+            {% if row is mapping %}
+              {% set dt = as_datetime(row.get('datetime'), none) %}
+              {% if dt is not none and as_local(dt).date() == date and is_number(row.get('native_temperature')) and row.get('condition') not in [none, '', 'unknown', 'unavailable'] %}
+                {% set day.rows = day.rows + [dict(high=row.get('native_temperature') | float, low=(row.get('native_templow') | float if is_number(row.get('native_templow')) else none), condition=row.get('condition'), is_daytime=row.get('is_daytime'))] %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if day.rows %}
+            {% set lows = day.rows | selectattr('low', 'number') | map(attribute='low') | list %}
+            {% set condition_rows = day.rows | selectattr('is_daytime', 'equalto', true) | list or day.rows %}
+            {% set ns.days = ns.days + [dict(date=date.isoformat(), high=day.rows | map(attribute='high') | max, low=(lows | min if lows else none), condition=condition_rows[0].condition, periods=day.rows | count)] %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.days }}
+      updated_at: "{{ states[states('sensor.formapanel_living_weather_forecast_source')].last_updated.isoformat() if has_value(states('sensor.formapanel_living_weather_forecast_source')) else none }}"
+  - name: formapanel_living_weather_day_0
+    unique_id: formapanel_living_weather_day_0
+    default_entity_id: sensor.formapanel_living_weather_day_0
+    unit_of_measurement: °C
+    availability: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=1)).date().isoformat()) | list %}{{ rows | count > 0 }}"
+    state: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=1)).date().isoformat()) | list %}{{ rows[0].high if rows else none }}"
+    attributes:
+      low: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=1)).date().isoformat()) | list %}{{ rows[0].low if rows else none }}"
+      condition: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=1)).date().isoformat()) | list %}{{ rows[0].condition if rows else none }}"
+      date: "{{ (now() + timedelta(days=1)).date().isoformat() }}"
+      periods: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=1)).date().isoformat()) | list %}{{ rows[0].periods if rows else 0 }}"
+      source_entity: "{{ states('sensor.formapanel_living_weather_forecast_source') }}"
+      updated_at: "{{ state_attr('sensor.formapanel_living_weather_forecast_days', 'updated_at') }}"
+  - name: formapanel_living_weather_day_1
+    unique_id: formapanel_living_weather_day_1
+    default_entity_id: sensor.formapanel_living_weather_day_1
+    unit_of_measurement: °C
+    availability: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=2)).date().isoformat()) | list %}{{ rows | count > 0 }}"
+    state: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=2)).date().isoformat()) | list %}{{ rows[0].high if rows else none }}"
+    attributes:
+      low: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=2)).date().isoformat()) | list %}{{ rows[0].low if rows else none }}"
+      condition: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=2)).date().isoformat()) | list %}{{ rows[0].condition if rows else none }}"
+      date: "{{ (now() + timedelta(days=2)).date().isoformat() }}"
+      periods: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=2)).date().isoformat()) | list %}{{ rows[0].periods if rows else 0 }}"
+      source_entity: "{{ states('sensor.formapanel_living_weather_forecast_source') }}"
+      updated_at: "{{ state_attr('sensor.formapanel_living_weather_forecast_days', 'updated_at') }}"
+  - name: formapanel_living_weather_day_2
+    unique_id: formapanel_living_weather_day_2
+    default_entity_id: sensor.formapanel_living_weather_day_2
+    unit_of_measurement: °C
+    availability: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=3)).date().isoformat()) | list %}{{ rows | count > 0 }}"
+    state: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=3)).date().isoformat()) | list %}{{ rows[0].high if rows else none }}"
+    attributes:
+      low: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=3)).date().isoformat()) | list %}{{ rows[0].low if rows else none }}"
+      condition: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=3)).date().isoformat()) | list %}{{ rows[0].condition if rows else none }}"
+      date: "{{ (now() + timedelta(days=3)).date().isoformat() }}"
+      periods: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=3)).date().isoformat()) | list %}{{ rows[0].periods if rows else 0 }}"
+      source_entity: "{{ states('sensor.formapanel_living_weather_forecast_source') }}"
+      updated_at: "{{ state_attr('sensor.formapanel_living_weather_forecast_days', 'updated_at') }}"
+  - name: formapanel_living_weather_day_3
+    unique_id: formapanel_living_weather_day_3
+    default_entity_id: sensor.formapanel_living_weather_day_3
+    unit_of_measurement: °C
+    availability: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=4)).date().isoformat()) | list %}{{ rows | count > 0 }}"
+    state: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=4)).date().isoformat()) | list %}{{ rows[0].high if rows else none }}"
+    attributes:
+      low: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=4)).date().isoformat()) | list %}{{ rows[0].low if rows else none }}"
+      condition: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=4)).date().isoformat()) | list %}{{ rows[0].condition if rows else none }}"
+      date: "{{ (now() + timedelta(days=4)).date().isoformat() }}"
+      periods: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=4)).date().isoformat()) | list %}{{ rows[0].periods if rows else 0 }}"
+      source_entity: "{{ states('sensor.formapanel_living_weather_forecast_source') }}"
+      updated_at: "{{ state_attr('sensor.formapanel_living_weather_forecast_days', 'updated_at') }}"
+  - name: formapanel_living_weather_day_4
+    unique_id: formapanel_living_weather_day_4
+    default_entity_id: sensor.formapanel_living_weather_day_4
+    unit_of_measurement: °C
+    availability: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=5)).date().isoformat()) | list %}{{ rows | count > 0 }}"
+    state: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=5)).date().isoformat()) | list %}{{ rows[0].high if rows else none }}"
+    attributes:
+      low: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=5)).date().isoformat()) | list %}{{ rows[0].low if rows else none }}"
+      condition: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=5)).date().isoformat()) | list %}{{ rows[0].condition if rows else none }}"
+      date: "{{ (now() + timedelta(days=5)).date().isoformat() }}"
+      periods: "{% set rows = (state_attr('sensor.formapanel_living_weather_forecast_days', 'days') or []) | selectattr('date', 'equalto', (now() + timedelta(days=5)).date().isoformat()) | list %}{{ rows[0].periods if rows else 0 }}"
+      source_entity: "{{ states('sensor.formapanel_living_weather_forecast_source') }}"
+      updated_at: "{{ state_attr('sensor.formapanel_living_weather_forecast_days', 'updated_at') }}"

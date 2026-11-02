@@ -1,0 +1,11 @@
+lvgl:
+  id: panel_ui
+  displays:
+    - panel_display
+  touchscreens:
+    - touchscreen_id: panel_touch
+  color_depth: 16
+  buffer_size: 25%
+  bg_color: 0x10181A
+  text_color: 0xFFFEF5
+  text_font: rh01_font_climate

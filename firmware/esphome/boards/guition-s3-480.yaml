@@ -1,0 +1,59 @@
+# Typical ESP32-S3-4848S040 profile. Confirm PCB revision before flashing.
+# RGB pins/timings/init sequence come from ESPHome's built-in model preset.
+esp32:
+  variant: esp32s3
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+# ST7701S needs this write-only SPI bus for controller initialization.
+spi:
+  - id: panel_lcd_spi
+    clk_pin: GPIO48
+    mosi_pin: GPIO47
+
+display:
+  - platform: mipi_rgb
+    model: GUITION-4848S040
+    id: panel_display
+    spi_id: panel_lcd_spi
+    update_interval: never
+    auto_clear_enabled: false
+
+i2c:
+  id: panel_i2c
+  sda: GPIO19
+  scl:
+    number: GPIO45
+    ignore_strapping_warning: true
+  scan: true
+
+touchscreen:
+  - platform: gt911
+    id: panel_touch
+    i2c_id: panel_i2c
+    display: panel_display
+    on_touch:
+      - lambda: |-
+          ESP_LOGD("panel_touch", "x=%d y=%d", touch.x, touch.y);
+
+output:
+  - platform: ledc
+    id: panel_backlight_pwm
+    pin: GPIO38
+    frequency: 150Hz
+    min_power: 0.01
+    zero_means_zero: true
+
+light:
+  - platform: monochromatic
+    id: panel_backlight
+    name: "Display Backlight"
+    entity_category: config
+    output: panel_backlight_pwm
+    restore_mode: ALWAYS_ON
+    default_transition_length: 0s

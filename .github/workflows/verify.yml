@@ -18,6 +18,8 @@ jobs:
         run: python -m pip install -r tools/requirements.txt
       - name: Render vectors to display profiles
         run: python tools/render_assets.py --all
+      - name: Render RH-01 device resources
+        run: python tools/render_rh01.py
       - name: Validate project files
         run: python tools/validate.py
       - name: Unit tests

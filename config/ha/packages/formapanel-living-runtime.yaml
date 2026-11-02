@@ -1,0 +1,197 @@
+# Active helper/script package; template entities are isolated config entries.
+# Install ONLY this file. Never globally reload climate templates.
+input_select:
+  formapanel_living_mode:
+    name: FormaPanel living mode
+    options:
+    - Auto
+    - Manual
+input_number:
+  formapanel_living_target:
+    name: FormaPanel living target
+    min: 16
+    max: 28
+    step: 0.1
+    unit_of_measurement: °C
+    mode: box
+  formapanel_living_weather_max_age_seconds:
+    name: FormaPanel weather report freshness (0 disables)
+    min: 0
+    max: 86400
+    step: 60
+    unit_of_measurement: s
+    mode: box
+  formapanel_living_light_brightness:
+    name: FormaPanel living requested light brightness
+    min: 0
+    max: 100
+    step: 1
+    unit_of_measurement: '%'
+    mode: slider
+input_boolean:
+  formapanel_living_manual_heat:
+    name: FormaPanel living manual heat
+  formapanel_living_manual_cool:
+    name: FormaPanel living manual cool
+  formapanel_living_primary_light_requested:
+    name: FormaPanel living primary light requested
+  formapanel_living_backend_connected:
+    name: FormaPanel living backend connected
+    initial: false
+script:
+  formapanel_living_light_toggle:
+    alias: FormaPanel living desired light toggle ONLY
+    mode: queued
+    max: 10
+    sequence:
+    - variables:
+        baseline: '{% set actual = states(''sensor.formapanel_living_primary_light_actual'') %}{{ actual if actual
+          in [''on'', ''off''] else states(''input_boolean.formapanel_living_primary_light_requested'') }}'
+    - condition: template
+      value_template: '{{ baseline in [''on'', ''off''] }}'
+    - choose:
+      - conditions: '{{ baseline == ''off'' }}'
+        sequence:
+        - action: input_boolean.turn_on
+          target: &id001
+            entity_id: input_boolean.formapanel_living_primary_light_requested
+      default:
+      - action: input_boolean.turn_off
+        target: *id001
+  formapanel_living_weather_refresh:
+    alias: FormaPanel living weather refresh
+    description: Read existing weather forecasts and update only five own JSON caches. No device actions.
+    mode: single
+    max_exceeded: silent
+    sequence:
+    - variables:
+        yandex_response: {}
+        gismeteo_response: {}
+    - action: weather.get_forecasts
+      target:
+        entity_id: weather.yandex_pogoda
+      data:
+        type: twice_daily
+      response_variable: yandex_response
+      continue_on_error: true
+    - action: weather.get_forecasts
+      target:
+        entity_id: weather.home_assistant_gismeteo
+      data:
+        type: daily
+      response_variable: gismeteo_response
+      continue_on_error: true
+    - variables:
+        candidates: |-
+          {% set ttl = states('input_number.formapanel_living_weather_max_age_seconds') | float(0) %}
+          {% set result = namespace(providers=[]) %}
+          {% for entity, response, kind in [('weather.yandex_pogoda', yandex_response, 'twice_daily'), ('weather.home_assistant_gismeteo', gismeteo_response, 'daily')] %}
+            {% set age = as_timestamp(now()) - as_timestamp(states[entity].last_reported, 0) if has_value(entity) else -1 %}
+            {% set payload = response.get(entity, {}) if response is mapping else {} %}
+            {% set rows = payload.get('forecast', []) if payload is mapping else [] %}
+            {% set provider = namespace(days=[]) %}
+            {% if ttl > 0 and 0 <= age <= ttl and state_attr(entity, 'temperature_unit') == '°C' and rows is sequence and rows is not string %}
+              {% for offset in range(1, 6) %}
+                {% set date = (now() + timedelta(days=offset)).date() %}
+                {% set day = namespace(entries=[]) %}
+                {% for row in rows %}
+                  {% if row is mapping %}
+                    {% set dt = as_datetime(row.get('datetime'), none) %}
+                    {% set high = row.get('temperature') %}
+                    {% set low = row.get('templow') %}
+                    {% set condition = row.get('condition') %}
+                    {% if dt is not none and dt.tzinfo is not none and as_local(dt).date() == date and is_number(high) and high is not boolean and condition in ['clear-night', 'cloudy', 'exceptional', 'fog', 'hail', 'lightning', 'lightning-rainy', 'partlycloudy', 'pouring', 'rainy', 'snowy', 'snowy-rainy', 'sunny', 'windy', 'windy-variant'] %}
+                      {% set valid_low = is_number(low) and low is not boolean and (low | float) <= (high | float) %}
+                      {% set day.entries = day.entries + [dict(date=date.isoformat(), datetime=dt.isoformat(), is_daytime=row.get('is_daytime'), high=high | float, low=(low | float if valid_low else none), condition=condition)] %}
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+                {% if day.entries %}
+                  {% set lows = day.entries | selectattr('low', 'number') | map(attribute='low') | list %}
+                  {% set condition_rows = day.entries | selectattr('is_daytime', 'equalto', true) | list or day.entries %}
+                  {% set provider.days = provider.days + [dict(date=date.isoformat(), high=day.entries | map(attribute='high') | max, low=(lows | min if lows else none), condition=condition_rows[0].condition, periods=day.entries | count, entries=day.entries)] %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {% set tomorrow = (now() + timedelta(days=1)).date().isoformat() %}
+            {% set score = provider.days | count if provider.days | selectattr('date', 'equalto', tomorrow) | list else 0 %}
+            {% set result.providers = result.providers + [dict(source=entity, kind=kind, days=provider.days, score=score)] %}
+          {% endfor %}
+          {{ result.providers }}
+    - variables:
+        selected: |-
+          {% set yandex = candidates[0] %}{% set gismeteo = candidates[1] %}
+          {{ gismeteo if gismeteo.score > yandex.score else yandex }}
+    - variables:
+        valid_response: '{{ selected.score > 0 }}'
+        response_received_at: '{{ now().isoformat() if selected.score > 0 else none }}'
+    - variables:
+        cache_payloads: |-
+          {% set output = namespace(values=[]) %}
+          {% for offset in range(1, 6) %}
+            {% set date = (now() + timedelta(days=offset)).date().isoformat() %}
+            {% set rows = selected.days | selectattr('date', 'equalto', date) | list if valid_response else [] %}
+            {% set row = rows[0] if rows else {} %}
+            {% set payload = dict(date=date, high=row.get('high'), low=row.get('low'), condition=row.get('condition'), source=(selected.source if valid_response else none), received_at=response_received_at) | to_json %}
+            {% set empty = dict(date=date, high=none, low=none, condition=none, source=none, received_at=none) | to_json %}
+            {% set output.values = output.values + [payload if payload | length <= 255 else empty] %}
+          {% endfor %}
+          {{ output.values }}
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.formapanel_living_weather_cache_0
+      data:
+        value: '{{ cache_payloads[0] }}'
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.formapanel_living_weather_cache_1
+      data:
+        value: '{{ cache_payloads[1] }}'
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.formapanel_living_weather_cache_2
+      data:
+        value: '{{ cache_payloads[2] }}'
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.formapanel_living_weather_cache_3
+      data:
+        value: '{{ cache_payloads[3] }}'
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.formapanel_living_weather_cache_4
+      data:
+        value: '{{ cache_payloads[4] }}'
+input_text:
+  formapanel_living_weather_cache_0:
+    name: FormaPanel living weather cache 0
+    max: 255
+    mode: text
+  formapanel_living_weather_cache_1:
+    name: FormaPanel living weather cache 1
+    max: 255
+    mode: text
+  formapanel_living_weather_cache_2:
+    name: FormaPanel living weather cache 2
+    max: 255
+    mode: text
+  formapanel_living_weather_cache_3:
+    name: FormaPanel living weather cache 3
+    max: 255
+    mode: text
+  formapanel_living_weather_cache_4:
+    name: FormaPanel living weather cache 4
+    max: 255
+    mode: text
+automation:
+- id: formapanel_living_weather_refresh
+  alias: FormaPanel living weather refresh
+  mode: single
+  max_exceeded: silent
+  triggers:
+  - trigger: homeassistant
+    event: start
+  - trigger: time_pattern
+    minutes: /30
+  actions:
+  - action: script.formapanel_living_weather_refresh

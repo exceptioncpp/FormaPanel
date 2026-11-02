@@ -1,0 +1,23 @@
+{
+  "family": "Nunito",
+  "retrieved": "2026-10-29",
+  "source": "https://github.com/google/fonts/tree/main/ofl/nunito",
+  "variable_url": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunito/Nunito%5Bwght%5D.ttf",
+  "license": "SIL Open Font License 1.1; see OFL.txt",
+  "method": "fontTools.varLib.instancer.instantiateVariableFont with wght=500/700, inplace=True, updateFontNames=True",
+  "fonttools_version": "4.68.0",
+  "files": [
+    {
+      "path": "assets/source/fonts/Nunito-Bold.ttf",
+      "sha256": "e811b0aa6ddcbb051f38db7dbfbd0fa366af056b3c02d3192fb53bc2004dd728"
+    },
+    {
+      "path": "assets/source/fonts/Nunito-Medium.ttf",
+      "sha256": "14e4b083288059bf10d2543a1194a194fd904fa1ddc5daf5f7b4c4b77016dfcf"
+    },
+    {
+      "path": "assets/source/fonts/Nunito-Variable.ttf",
+      "sha256": "bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+substitutions:
+  demo_time: --:--
+  demo_outdoor_temperature: --°
+  demo_wind: --
+  demo_room_temperature: --°
+  demo_room_humidity: --%
+  demo_room_co2: -- ppm
+packages:
+  resources: !include '../packages/ui/resources.yaml'
+  visual_resources: !include '../packages/ui/visual-resources.yaml'
+  runtime: !include '../packages/ui/runtime.yaml'
+  home: !include '../packages/ui/pages/room-home.yaml'
+  lighting: !include '../packages/ui/pages/lighting.yaml'
+  climate: !include '../packages/ui/pages/climate.yaml'
+  turbo: !include '../packages/ui/pages/turbo.yaml'
+  weather: !include '../packages/ui/pages/weather.yaml'
+  system: !include '../packages/ui/pages/system.yaml'
+  state: !include '../packages/ui/state.yaml'
+  navigation: !include '../packages/ui/navigation.yaml'
+  events: !include '../packages/ui/events.yaml'

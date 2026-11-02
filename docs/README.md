@@ -1,5 +1,14 @@
 # Карта документации
 
+**Действующий процесс — [начать здесь](development.md).**
+Быстрые ссылки: [инфраструктура](../../../docs/infrastructure/ha-formapanel-workshop.md),
+[компоновка исходников](04-architecture/source-composition.md),
+[методология UI](02-research/effective-ui-development-2026-11.md),
+[сборка/preview](06-validation/build-and-preview-runbook.md).
+
+**Следующий этап — [HA-функциональность и навигация](05-roadmap/ha-functional-ui-plan.md)**
+(черновик экранов на согласовании). [Успешный визуальный тест прототипа на железе](06-validation/rh01-hardware-feedback-2026-11-01.md) подтверждён владельцем.
+
 **Статус текстов:** `fact` — подтверждено архивом/официальной документацией; `target` — требование; `proposal` — предлагаемое решение; `open` — требует исследования/замера. Не смешивать статусы.
 
 - [00 — Vision](00-vision/product-vision.md) — позиционирование, границы, принципы.
@@ -8,6 +17,8 @@
 - **[Исследование баз прошивки, октябрь 2026](02-research/firmware-platforms-2026-10.md)** — ESPHome/LVGL 9, ESP-IDF/LVGL, Arduino, готовые проекты, ресурсные риски и взвешенный выбор.
 - **[Средства визуального редактирования и preview](02-research/lvgl-visual-tools-2026-10.md)** — ESPBoards, ESPHomeDesigner, ESPHome-LVGL-Simulator, LVGL Pro, EEZ, SquareLine и настоящий LVGL SDL.
 - [Windows 11 build/preview и план CI](02-research/build-preview-workflows.md) · [реестр источников](02-research/research-source-register-2026-10.md).
+- **[Рабочая среда в HA: редактор, Git, native preview и сборки](02-research/ha-browser-workflow.md)** — один многофайловый checkout без импорта/экспорта прошивки; [ADR-0004](04-architecture/adr/0004-browser-workshop.md), [проверка установленной мастерской](06-validation/ha-workshop-2026-10-31.md), [внешний исследовательский отчёт](02-research/external/README.md).
+- **[Практический цикл разработки UI](02-research/effective-ui-development-2026-11.md)** — визуальные редакторы, UI-фрагменты, YAML → native preview, mock/HA-поведение и интерактивный SDL; [замеры инкрементальной сборки 0.1.1](06-validation/ha-workshop-incremental-2026-11-01.md).
 - [ADR-0003 — критерии выбора](04-architecture/adr/0003-platform-evaluation.md) · [RH-01/LA-01 A/B протокол](06-validation/rh01-platform-ab-test.md).
 - **[RH-01 — утверждённая компоновка главной жилой панели](03-design/room-home-reference-RH-01.md)** — точное описание UI 480×480, мотивы выбора/отказа, список открытых вариантов света и шрифта.
 - **[LA-01 — утверждённая иконка света](03-design/light-action-reference-LA-01.md)** — тонкий полукруглый подвесной плафон, полупрозрачный свет, градиентно затухающий провод, состояния on/off.
@@ -26,3 +37,6 @@
 3. Для каждой внешней ссылки сохранять дату проверки и отличать реальные ESP32/LVGL кадры от HTML/концептов.
 4. Для каждого аппаратного профиля указывать реальные данные: модель, ревизия, touch IC, flash/PSRAM, controller, сборка ESPHome.
 5. После первого прототипа добавлять фотографии реального экрана и замеры, не заменяя ими макеты.
+6. При изменении manifest, entry или shared packages обновлять граф и контракт ID в `source-composition.md`; новые страницы включать в capture-сценарий.
+7. Изменения worker/version отражать в инфраструктурном runbook и build guide. Новые предложения помечать отдельно от установленного процесса.
+8. Последний [аудит полноты документации](06-validation/documentation-audit-2026-11-01.md) фиксирует охват, исправления и границы проверки.

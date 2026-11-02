@@ -1,6 +1,10 @@
 # RH-01 / LA-01 — сравнительный технический PoC ESPHome vs ESP-IDF
 
-**Статус:** план эксперимента, не test report. **Дата:** 2026-10-29. **Обе прошивки пока не собраны и на реальной панели не измерены.**
+**Статус:** план сравнительного эксперимента, не test report. Исходная дата:
+2026-10-29; уточнение 01.11.2026: ESPHome 2026.10.1 уже Validate/Compile
+проверен и имеет настоящий host/snapshot preview. Native ESP-IDF кандидат
+не реализован; обе ветки на реальной панели ещё не сравнивались.
+Актуальный процесс: [сборка/preview](build-and-preview-runbook.md).
 
 Связанные документы: [approved RH-01](../03-design/room-home-reference-RH-01.md), [approved LA-01](../03-design/light-action-reference-LA-01.md), [архитектурные кандидаты](../02-research/firmware-platforms-2026-10.md), [предпросмотр](../02-research/lvgl-visual-tools-2026-10.md), [build и CI](../02-research/build-preview-workflows.md), [performance](performance.md).
 
@@ -8,7 +12,7 @@
 
 Принять основанное на данных решение для Guition ESP32-S3-4848S040, сравнив две **сопоставимые** реализации того же approved UI:
 
-- **A:** ESPHome 2026.10.0 + LVGL 9 через ESP-IDF + ESPHome native HA API.
+- **A:** проверенный ESPHome 2026.10.1 + LVGL 9.5.0 через ESP-IDF 5.5.6 + ESPHome native HA API.
 - **B:** native ESP-IDF v6.1 + LVGL 9 + `esp_lcd`/`esp_lvgl_port`, mock HA на первом этапе; затем MQTT/bridge.
 - **Отдельно:** сравнить качество authoring и предпросмотра без устройства (ESPBoards/ESPHomeDesigner/ESPHome-LVGL-Simulator vs LVGL Pro/EEZ/SquareLine/SDL).
 - **Не цель:** одновременно довести до production две ветки или менять approved RH-01/LA-01 ради программных удобств.
