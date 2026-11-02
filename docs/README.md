@@ -14,6 +14,7 @@
 - **[Структура референсов и ассетов](03-design/asset-library.md)** — отдельное хранение проверенных UI-макетов, hi-res фонов, исходников виджетов и сгенерированных ресурсов 480/720.
 - [03 — Дизайн](03-design/design-system.md), [экраны и навигация](03-design/screens.md), [480/720 pipeline](03-design/resolution-strategy.md), [визуальное ревью](03-design/visual-review.md).
 - [04 — Архитектура](04-architecture/architecture.md), [контракт HA](04-architecture/ha-contract.md), [профили железа](04-architecture/hardware.md), [ADR-0001](04-architecture/adr/0001-native-lvgl.md), [ADR-0002](04-architecture/adr/0002-source-resolution-independence.md).
+- **[S0 — сборка ESPHome локально в HA и тесты Guition](05-roadmap/phase-s0-ha-local-build-guition.md)** — детальная пошаговая инструкция: подготовка и backup, Device Builder, полный диагностический YAML, USB, OTA, Git Packages, протокол приёмки.
 - [05 — План](05-roadmap/roadmap.md), [backlog](05-roadmap/backlog.md).
 - [06 — Проверка](06-validation/test-plan.md), [метрики](06-validation/performance.md).
 - [07 — Правовые вопросы](07-legal/licensing.md).
