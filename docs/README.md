@@ -24,6 +24,8 @@
 - **[Home-off — выбранные палитры и Comfortaa (2026-11-02)](03-design/home-off-visual-selection-2026-11-02.md)** — основной айвори/мох, резервные песочный/мох и светлый шалфей; правила размера шрифта и сохранения композиции.
 - **[LA-01 — утверждённая иконка света](03-design/light-action-reference-LA-01.md)** — тонкий полукруглый подвесной плафон, полупрозрачный свет, градиентно затухающий провод, состояния on/off.
 - **[Структура референсов и ассетов](03-design/asset-library.md)** — отдельное хранение проверенных UI-макетов, hi-res фонов, исходников виджетов и сгенерированных ресурсов 480/720.
+- **[Комплексный Design & UX Review — 2026-11-02](03-design/design-ux-audit-2026-11-02.md)** — 3 исходных экрана, композиция, типографика, минимализм, согласованная навигация, целевая touch-map, P0/P1/P2.
+- **[План исправлений Design & UX — 2026-11-02](05-roadmap/design-ux-remediation-2026-11-02.md)** — этапы D0–D7, артефакты, гейты, открытые решения, backlog.
 - [03 — Дизайн](03-design/design-system.md), [экраны и навигация](03-design/screens.md), [480/720 pipeline](03-design/resolution-strategy.md), [визуальное ревью](03-design/visual-review.md).
 - [04 — Архитектура](04-architecture/architecture.md), [контракт HA](04-architecture/ha-contract.md), [профили железа](04-architecture/hardware.md), [ADR-0001](04-architecture/adr/0001-native-lvgl.md), [ADR-0002](04-architecture/adr/0002-source-resolution-independence.md).
 - **[S0 — сборка ESPHome локально в HA и тесты Guition](05-roadmap/phase-s0-ha-local-build-guition.md)** — детальная пошаговая инструкция: подготовка и backup, Device Builder, полный диагностический YAML, USB, OTA, Git Packages, протокол приёмки.
