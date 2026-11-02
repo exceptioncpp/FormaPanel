@@ -21,6 +21,7 @@
 - **[Практический цикл разработки UI](02-research/effective-ui-development-2026-11.md)** — визуальные редакторы, UI-фрагменты, YAML → native preview, mock/HA-поведение и интерактивный SDL; [замеры инкрементальной сборки 0.1.1](06-validation/ha-workshop-incremental-2026-11-01.md).
 - [ADR-0003 — критерии выбора](04-architecture/adr/0003-platform-evaluation.md) · [RH-01/LA-01 A/B протокол](06-validation/rh01-platform-ab-test.md).
 - **[RH-01 — утверждённая компоновка главной жилой панели](03-design/room-home-reference-RH-01.md)** — точное описание UI 480×480, мотивы выбора/отказа, список открытых вариантов света и шрифта.
+- **[Home-off — выбранные палитры и Comfortaa (2026-11-02)](03-design/home-off-visual-selection-2026-11-02.md)** — основной айвори/мох, резервные песочный/мох и светлый шалфей; правила размера шрифта и сохранения композиции.
 - **[LA-01 — утверждённая иконка света](03-design/light-action-reference-LA-01.md)** — тонкий полукруглый подвесной плафон, полупрозрачный свет, градиентно затухающий провод, состояния on/off.
 - **[Структура референсов и ассетов](03-design/asset-library.md)** — отдельное хранение проверенных UI-макетов, hi-res фонов, исходников виджетов и сгенерированных ресурсов 480/720.
 - [03 — Дизайн](03-design/design-system.md), [экраны и навигация](03-design/screens.md), [480/720 pipeline](03-design/resolution-strategy.md), [визуальное ревью](03-design/visual-review.md).
